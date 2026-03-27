@@ -31,6 +31,7 @@ func main() {
 	log.Println("Connected to database")
 
 	repos := repository.New(db.Pool)
+	log.Printf("JWT secret loaded (%d chars)", len(cfg.JWT.Secret))
 	jwtService := auth.NewJWTService(cfg.JWT.Secret)
 	router := api.NewRouter(cfg, db.Pool, repos, jwtService)
 	server := api.NewServer(&cfg.Server, router)

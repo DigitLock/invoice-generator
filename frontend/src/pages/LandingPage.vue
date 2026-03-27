@@ -25,10 +25,10 @@
             class="rounded-md bg-blue-600 px-6 py-3 text-center text-white font-medium hover:bg-blue-700">
             Create Invoice
           </RouterLink>
-          <button disabled
-            class="rounded-md border border-gray-300 px-6 py-3 text-gray-400 font-medium cursor-not-allowed">
+          <RouterLink to="/login"
+            class="rounded-md border border-gray-300 px-6 py-3 text-center text-gray-700 font-medium hover:bg-gray-50">
             Sign In
-          </button>
+          </RouterLink>
         </div>
       </div>
     </div>

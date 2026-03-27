@@ -18,9 +18,14 @@
 
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useInvoiceStore } from '@/stores/invoice'
 import InvoiceForm from '@/components/invoice/InvoiceForm.vue'
+import { generatePdf } from '@/services/pdfGenerator'
 
-function handleGeneratePdf() {
-  // TODO: validate form, then call pdfGenerator service
+const { invoice } = storeToRefs(useInvoiceStore())
+
+async function handleGeneratePdf() {
+  await generatePdf(invoice.value)
 }
 </script>

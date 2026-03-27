@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Invoice, LineItem, Seller, Buyer, BankAccount } from '@/types/invoice'
+import { useInvoiceCalculations } from '@/composables/useInvoiceCalculations'
 
 function createEmptySeller(): Seller {
   return {
@@ -67,6 +68,8 @@ function createEmptyInvoice(): Invoice {
 
 export const useInvoiceStore = defineStore('invoice', () => {
   const invoice = ref<Invoice>(createEmptyInvoice())
+
+  useInvoiceCalculations(invoice)
 
   function resetInvoice() {
     invoice.value = createEmptyInvoice()

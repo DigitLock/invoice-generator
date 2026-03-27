@@ -1,0 +1,25 @@
+CREATE TABLE invoices (
+    id                  BIGSERIAL PRIMARY KEY,
+    user_id             INTEGER NOT NULL,
+    family_id           INTEGER NOT NULL,
+    company_id          BIGINT NOT NULL REFERENCES companies(id),
+    client_id           BIGINT NOT NULL REFERENCES clients(id),
+    bank_account_id     BIGINT NOT NULL REFERENCES bank_accounts(id),
+    invoice_number      VARCHAR(50) NOT NULL,
+    issue_date          DATE NOT NULL,
+    due_date            DATE NOT NULL CHECK (due_date >= issue_date),
+    currency            VARCHAR(10) NOT NULL,
+    status              VARCHAR(20) NOT NULL DEFAULT 'draft'
+                        CHECK (status IN ('draft', 'sent', 'partially_paid', 'paid', 'cancelled')),
+    is_overdue          BOOLEAN NOT NULL DEFAULT false,
+    vat_rate            DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (vat_rate >= 0),
+    subtotal            DECIMAL(15,2) NOT NULL CHECK (subtotal >= 0),
+    vat_amount          DECIMAL(15,2) NOT NULL CHECK (vat_amount >= 0),
+    total               DECIMAL(15,2) NOT NULL CHECK (total >= 0),
+    contract_reference  VARCHAR(255),
+    external_reference  VARCHAR(255),
+    notes               TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at          TIMESTAMPTZ
+);

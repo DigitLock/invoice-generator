@@ -158,16 +158,29 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   doc.text('Total', totalEndX, y, { align: 'right' })
   y = y + (tableHeaderH / 2) - 1
   addLine(y)
-  y += ROW_PAD
 
   // Table rows
   doc.setFont(FONT_NAME, 'normal')
   const descMaxW = descEndX - colDescX - 2
-  for (let idx = 0; idx < invoice.items.length; idx++) {
-    const item = invoice.items[idx]
-    if (!item.description && !item.quantity && !item.unitPrice) continue
+  const visibleItems = invoice.items.filter(
+    (item) => item.description || item.quantity || item.unitPrice,
+  )
+  for (let idx = 0; idx < visibleItems.length; idx++) {
+    const item = visibleItems[idx]
+
+    // 1. Draw separator line at current Y (light for inter-row, none for first)
+    if (idx > 0) {
+      doc.setDrawColor(230, 230, 230)
+      doc.setLineWidth(0.1)
+      doc.line(MARGIN_L, y, PAGE_W - MARGIN_R, y)
+    }
+
+    // 2. Pad down 3mm after line
+    y += ROW_PAD
+
     checkPageBreak(10)
 
+    // 3. Render text at current Y
     const descLines = doc.splitTextToSize(item.description || '', descMaxW)
     doc.text(descLines, colDescX + 1, y)
     doc.text(item.quantity || '0', colQtyCenterX, y, { align: 'center' })
@@ -184,16 +197,9 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
       { align: 'right' },
     )
 
-    const rowH = Math.max(descLines.length * LINE_HEIGHT, 6)
-    y += rowH + ROW_PAD
-
-    // Light row separator with padding (except after last item)
-    if (idx < invoice.items.length - 1) {
-      doc.setDrawColor(230, 230, 230)
-      doc.setLineWidth(0.1)
-      doc.line(MARGIN_L, y, PAGE_W - MARGIN_R, y)
-      y += ROW_PAD
-    }
+    // 4-5. Advance Y by text height + 3mm padding before next line
+    const textH = Math.max(descLines.length * LINE_HEIGHT, LINE_HEIGHT)
+    y += textH + ROW_PAD
   }
 
   y += 2

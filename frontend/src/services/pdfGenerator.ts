@@ -1,11 +1,13 @@
 import { jsPDF } from 'jspdf'
 import type { Invoice } from '@/types/invoice'
+import robotoRegularUrl from '@/assets/fonts/Roboto-Regular.ttf'
+import robotoBoldUrl from '@/assets/fonts/Roboto-Bold.ttf'
 
 const PAGE_W = 210
 const MARGIN_L = 20
 const MARGIN_R = 20
 const CONTENT_W = PAGE_W - MARGIN_L - MARGIN_R
-const FONT_NORMAL = 'helvetica'
+const FONT_NAME = 'Roboto'
 const LINE_HEIGHT = 4.5
 
 function formatDate(iso: string): string {
@@ -24,8 +26,43 @@ function formatAmount(amount: string, currency: string): string {
   return `${formatted} ${currency}`
 }
 
+async function loadFont(url: string): Promise<string> {
+  const response = await fetch(url)
+  const buffer = await response.arrayBuffer()
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return btoa(binary)
+}
+
+let fontsLoaded = false
+let robotoRegularB64 = ''
+let robotoBoldB64 = ''
+
+async function ensureFonts() {
+  if (fontsLoaded) return
+  ;[robotoRegularB64, robotoBoldB64] = await Promise.all([
+    loadFont(robotoRegularUrl),
+    loadFont(robotoBoldUrl),
+  ])
+  fontsLoaded = true
+}
+
+function registerFonts(doc: jsPDF) {
+  doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularB64)
+  doc.addFont('Roboto-Regular.ttf', FONT_NAME, 'normal')
+  doc.addFileToVFS('Roboto-Bold.ttf', robotoBoldB64)
+  doc.addFont('Roboto-Bold.ttf', FONT_NAME, 'bold')
+  doc.setFont(FONT_NAME, 'normal')
+}
+
 export async function generatePdf(invoice: Invoice): Promise<Blob> {
+  await ensureFonts()
+
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  registerFonts(doc)
   let y = 20
 
   function addLine(yPos: number) {
@@ -41,22 +78,15 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
     }
   }
 
-  /** Render a text field with splitTextToSize, advance y, return lines rendered */
-  function drawWrapped(text: string, x: number, maxW: number): number {
-    const lines: string[] = doc.splitTextToSize(text, maxW)
-    doc.text(lines, x, y)
-    return lines.length
-  }
-
   // --- 1. HEADER (compact) ---
   const invoiceNum = invoice.invoiceNumber || 'N/A'
 
-  doc.setFont(FONT_NORMAL, 'bold')
+  doc.setFont(FONT_NAME, 'bold')
   doc.setFontSize(16)
   doc.text(`Invoice #${invoiceNum}`, MARGIN_L, y)
   y += 7
 
-  doc.setFont(FONT_NORMAL, 'normal')
+  doc.setFont(FONT_NAME, 'normal')
   doc.setFontSize(9)
   doc.setTextColor(100)
   const dateLine = `Issue Date: ${formatDate(invoice.issueDate)}  |  Due Date: ${formatDate(invoice.dueDate)}`
@@ -83,13 +113,13 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   const colMaxW = colW - 5
 
   doc.setFontSize(10)
-  doc.setFont(FONT_NORMAL, 'bold')
+  doc.setFont(FONT_NAME, 'bold')
   doc.text('From:', sellerX, y)
   doc.text('Bill To:', buyerX, y)
   y += 6
 
   doc.setFontSize(9)
-  doc.setFont(FONT_NORMAL, 'normal')
+  doc.setFont(FONT_NAME, 'normal')
 
   const sellerEntries: string[] = []
   if (invoice.seller.name) sellerEntries.push(invoice.seller.name)
@@ -138,7 +168,7 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
 
   addLine(y - 1)
 
-  doc.setFont(FONT_NORMAL, 'bold')
+  doc.setFont(FONT_NAME, 'bold')
   doc.setFontSize(9)
   y += 3
   doc.text('Description', colDesc + 1, y)
@@ -150,7 +180,7 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   y += 5
 
   // Table rows
-  doc.setFont(FONT_NORMAL, 'normal')
+  doc.setFont(FONT_NAME, 'normal')
   const descMaxW = CONTENT_W * 0.46
   for (let idx = 0; idx < invoice.items.length; idx++) {
     const item = invoice.items[idx]
@@ -176,12 +206,12 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
     const rowH = Math.max(descLines.length * LINE_HEIGHT, 6)
     y += rowH + 1
 
-    // Light row separator (except after last item)
+    // Light row separator with padding (except after last item)
     if (idx < invoice.items.length - 1) {
       doc.setDrawColor(230, 230, 230)
       doc.setLineWidth(0.1)
       doc.line(MARGIN_L, y, PAGE_W - MARGIN_R, y)
-      y += 3
+      y += 4
     }
   }
 
@@ -195,7 +225,7 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   const totalsValueX = PAGE_W - MARGIN_R
 
   doc.setFontSize(9)
-  doc.setFont(FONT_NORMAL, 'normal')
+  doc.setFont(FONT_NAME, 'normal')
   doc.text('Subtotal:', totalsLabelX, y)
   doc.text(formatAmount(invoice.subtotal, invoice.currency), totalsValueX, y, {
     align: 'right',
@@ -213,7 +243,7 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   doc.setFillColor(245, 245, 245)
   doc.rect(totalsLabelX - 2, y - 1, totalsValueX - totalsLabelX + 4, totalRowH, 'F')
 
-  doc.setFont(FONT_NORMAL, 'bold')
+  doc.setFont(FONT_NAME, 'bold')
   doc.setFontSize(11)
   y += 4
   doc.text('Total:', totalsLabelX, y)
@@ -225,13 +255,13 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   // --- 6. PAYMENT DETAILS ---
   checkPageBreak(40)
 
-  doc.setFont(FONT_NORMAL, 'bold')
+  doc.setFont(FONT_NAME, 'bold')
   doc.setFontSize(10)
   doc.text('Payment Details', MARGIN_L, y)
   y += 7
 
   doc.setFontSize(9)
-  doc.setFont(FONT_NORMAL, 'normal')
+  doc.setFont(FONT_NAME, 'normal')
 
   const labelCol = MARGIN_L
   const valueCol = MARGIN_L + 30
@@ -257,9 +287,9 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   for (const [label, value] of paymentPairs) {
     const wrapped: string[] = doc.splitTextToSize(value, valueMaxW)
     checkPageBreak(wrapped.length * LINE_HEIGHT + 2)
-    doc.setFont(FONT_NORMAL, 'bold')
+    doc.setFont(FONT_NAME, 'bold')
     doc.text(label, labelCol, y)
-    doc.setFont(FONT_NORMAL, 'normal')
+    doc.setFont(FONT_NAME, 'normal')
     doc.text(wrapped, valueCol, y)
     y += wrapped.length * LINE_HEIGHT + 1
   }
@@ -268,11 +298,11 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   if (invoice.notes) {
     y += 7
     checkPageBreak(20)
-    doc.setFont(FONT_NORMAL, 'bold')
+    doc.setFont(FONT_NAME, 'bold')
     doc.setFontSize(10)
     doc.text('Notes', MARGIN_L, y)
     y += 6
-    doc.setFont(FONT_NORMAL, 'normal')
+    doc.setFont(FONT_NAME, 'normal')
     doc.setFontSize(9)
     const noteLines: string[] = doc.splitTextToSize(invoice.notes, CONTENT_W)
     doc.text(noteLines, MARGIN_L, y)

@@ -290,6 +290,10 @@ func (r *InvoiceRepository) GetItems(ctx context.Context, invoiceID int64) ([]sq
 	return r.q.ListInvoiceItems(ctx, invoiceID)
 }
 
+func (r *InvoiceRepository) GetBankAccount(ctx context.Context, id int64) (sqlc.BankAccount, error) {
+	return r.q.GetBankAccount(ctx, id)
+}
+
 func (r *InvoiceRepository) generateNumber(ctx context.Context, q *sqlc.Queries, userID int32, issueDate time.Time) (string, error) {
 	dateStr := issueDate.Format("02012006")
 	prefix := fmt.Sprintf("INV-%s-", dateStr)

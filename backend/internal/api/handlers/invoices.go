@@ -1,11 +1,15 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/DigitLock/invoice-generator/backend/internal/api/middleware"
 	"github.com/DigitLock/invoice-generator/backend/internal/database/sqlc"
 	"github.com/DigitLock/invoice-generator/backend/internal/dto"
+	"github.com/DigitLock/invoice-generator/backend/internal/pdf"
 	"github.com/DigitLock/invoice-generator/backend/internal/repository"
 )
 
@@ -269,6 +273,116 @@ func (h *InvoiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *InvoiceHandler) GeneratePDF(w http.ResponseWriter, r *http.Request) {
+	familyID, ok := middleware.GetFamilyID(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "Missing family context")
+		return
+	}
+	id, err := urlParamInt64(r, "id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "Invalid invoice ID")
+		return
+	}
+
+	invoice, err := h.repo.GetByID(r.Context(), id, familyID)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "Invoice not found")
+		return
+	}
+
+	company, err := h.companyRepo.GetByID(r.Context(), invoice.CompanyID, familyID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed to load company")
+		return
+	}
+
+	client, err := h.clientRepo.GetByID(r.Context(), invoice.ClientID, familyID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed to load client")
+		return
+	}
+
+	bankAccount, err := h.repo.GetBankAccount(r.Context(), invoice.BankAccountID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed to load bank account")
+		return
+	}
+
+	items, err := h.repo.GetItems(r.Context(), id)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed to load invoice items")
+		return
+	}
+
+	pdfItems := make([]pdf.ItemData, 0, len(items))
+	for _, it := range items {
+		pdfItems = append(pdfItems, pdf.ItemData{
+			Description: it.Description,
+			Quantity:    it.Quantity.String(),
+			UnitPrice:   it.UnitPrice,
+			Total:       it.Total,
+		})
+	}
+
+	data := pdf.InvoiceData{
+		InvoiceNumber:     invoice.InvoiceNumber,
+		IssueDate:         formatDate(invoice.IssueDate),
+		DueDate:           formatDate(invoice.DueDate),
+		ContractReference: stringFromPgText(invoice.ContractReference),
+		ExternalReference: stringFromPgText(invoice.ExternalReference),
+		Currency:          invoice.Currency,
+		VatRate:           invoice.VatRate.String(),
+		Seller: pdf.PartyData{
+			Name:          company.Name,
+			ContactPerson: company.ContactPerson,
+			Address:       company.Address,
+			Phone:         stringFromPgText(company.Phone),
+			VatNumber:     stringFromPgText(company.VatNumber),
+			RegNumber:     stringFromPgText(company.RegNumber),
+		},
+		Buyer: pdf.PartyData{
+			Name:          client.Name,
+			ContactPerson: stringFromPgText(client.ContactPerson),
+			Email:         stringFromPgText(client.Email),
+			Address:       client.Address,
+			VatNumber:     stringFromPgText(client.VatNumber),
+			RegNumber:     stringFromPgText(client.RegNumber),
+		},
+		Bank: pdf.BankData{
+			AccountHolder: bankAccount.AccountHolder,
+			BankName:      bankAccount.BankName,
+			BankAddress:   bankAccount.BankAddress,
+			IBAN:          bankAccount.Iban,
+			SWIFT:         bankAccount.Swift,
+		},
+		Items:     pdfItems,
+		Notes:     stringFromPgText(invoice.Notes),
+		Subtotal:  invoice.Subtotal,
+		VatAmount: invoice.VatAmount,
+		Total:     invoice.Total,
+	}
+
+	pdfBytes, err := pdf.Generate(data)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "PDF generation failed")
+		return
+	}
+
+	filename := invoice.InvoiceNumber + ".pdf"
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(pdfBytes)))
+	w.Write(pdfBytes)
+}
+
+func stringFromPgText(t pgtype.Text) string {
+	if !t.Valid {
+		return ""
+	}
+	return t.String
 }
 
 func mapInvoice(inv sqlc.Invoice) dto.InvoiceResponse {

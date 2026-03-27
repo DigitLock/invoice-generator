@@ -76,6 +76,7 @@ func NewRouter(cfg *config.Config, pool *pgxpool.Pool, repos *repository.Reposit
 			r.Delete("/{id}", invoiceHandler.Delete)
 			r.Patch("/{id}/status", invoiceHandler.UpdateStatus)
 			r.Patch("/{id}/overdue", invoiceHandler.UpdateOverdue)
+			r.Get("/{id}/pdf", invoiceHandler.GeneratePDF)
 		})
 	})
 

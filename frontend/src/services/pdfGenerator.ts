@@ -134,7 +134,9 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   const colQty = MARGIN_L + CONTENT_W * 0.5
   const colPrice = MARGIN_L + CONTENT_W * 0.75
   const colTotal = PAGE_W - MARGIN_R
-  const tableHeaderH = 7
+  const tableHeaderH = 9
+  const ROW_PAD_TOP = 3
+  const ROW_PAD_BOTTOM = 2
 
   // Table header background
   doc.setFillColor(245, 245, 245)
@@ -144,14 +146,14 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
 
   doc.setFont(FONT_NAME, 'bold')
   doc.setFontSize(9)
-  y += 3
+  y += (tableHeaderH / 2) + 1
   doc.text('Description', colDesc + 1, y)
   doc.text('Qty', colQty, y, { align: 'right' })
   doc.text('Unit Price', colPrice, y, { align: 'right' })
   doc.text('Total', colTotal, y, { align: 'right' })
-  y += 3
+  y = y + (tableHeaderH / 2) - 1
   addLine(y)
-  y += 5
+  y += ROW_PAD_TOP
 
   // Table rows
   doc.setFont(FONT_NAME, 'normal')
@@ -178,14 +180,14 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
     )
 
     const rowH = Math.max(descLines.length * LINE_HEIGHT, 6)
-    y += rowH + 1
+    y += rowH + ROW_PAD_BOTTOM
 
     // Light row separator with padding (except after last item)
     if (idx < invoice.items.length - 1) {
       doc.setDrawColor(230, 230, 230)
       doc.setLineWidth(0.1)
       doc.line(MARGIN_L, y, PAGE_W - MARGIN_R, y)
-      y += 4
+      y += ROW_PAD_TOP
     }
   }
 

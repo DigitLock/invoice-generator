@@ -144,19 +144,20 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   const ROW_PAD = 4
 
   // Table header background
+  const headerTop = y
   doc.setFillColor(245, 245, 245)
-  doc.rect(MARGIN_L, y - 1, CONTENT_W, tableHeaderH, 'F')
-
-  addLine(y - 1)
+  doc.rect(MARGIN_L, headerTop, CONTENT_W, tableHeaderH, 'F')
+  addLine(headerTop)
 
   doc.setFont(FONT_NAME, 'bold')
   doc.setFontSize(9)
-  y += (tableHeaderH / 2) + 1
-  doc.text('Description', colDescX + 1, y)
-  doc.text('Qty', colQtyCenterX, y, { align: 'center' })
-  doc.text('Unit Price', colPriceCenterX, y, { align: 'center' })
-  doc.text('Total', totalEndX, y, { align: 'right' })
-  y = y + (tableHeaderH / 2) - 1
+  const headerBaseline = headerTop + (tableHeaderH / 2) + 1.5
+  doc.text('Description', colDescX + 1, headerBaseline)
+  doc.text('Qty', colQtyCenterX, headerBaseline, { align: 'center' })
+  doc.text('Unit Price', colPriceCenterX, headerBaseline, { align: 'center' })
+  doc.text('Total', totalEndX, headerBaseline, { align: 'right' })
+
+  y = headerTop + tableHeaderH
   addLine(y)
 
   // Table rows

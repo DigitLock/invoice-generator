@@ -1,6 +1,7 @@
 <template>
   <fieldset class="space-y-4">
     <legend class="text-lg font-medium text-gray-900">Line Items</legend>
+    <p v-if="errors.lineItems" class="text-sm text-red-600">{{ errors.lineItems }}</p>
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b text-left text-gray-700">
@@ -43,10 +44,13 @@
 </template>
 
 <script setup lang="ts">
+import { inject } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useInvoiceStore, createEmptyLineItem } from '@/stores/invoice'
+import type { useValidation } from '@/composables/useValidation'
 
 const { invoice } = storeToRefs(useInvoiceStore())
+const { errors } = inject('validation') as ReturnType<typeof useValidation>
 
 function addItem() {
   invoice.value.items.push(createEmptyLineItem())

@@ -25,8 +25,10 @@
 </template>
 
 <script setup lang="ts">
+import { provide } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useInvoiceStore } from '@/stores/invoice'
+import { useValidation } from '@/composables/useValidation'
 import InvoiceHeader from './InvoiceHeader.vue'
 import SellerSection from './SellerSection.vue'
 import BuyerSection from './BuyerSection.vue'
@@ -39,4 +41,9 @@ defineEmits<{
 }>()
 
 const { invoice } = storeToRefs(useInvoiceStore())
+const validation = useValidation()
+
+provide('validation', validation)
+
+defineExpose({ validation })
 </script>

@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf'
 import type { Invoice } from '@/types/invoice'
-import robotoRegularUrl from '@/assets/fonts/Roboto-Regular.ttf'
-import robotoBoldUrl from '@/assets/fonts/Roboto-Bold.ttf'
+import { robotoRegularBase64 } from '@/assets/fonts/roboto-regular-base64'
+import { robotoBoldBase64 } from '@/assets/fonts/roboto-bold-base64'
 
 const PAGE_W = 210
 const MARGIN_L = 20
@@ -26,41 +26,15 @@ function formatAmount(amount: string, currency: string): string {
   return `${formatted} ${currency}`
 }
 
-async function loadFont(url: string): Promise<string> {
-  const response = await fetch(url)
-  const buffer = await response.arrayBuffer()
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i])
-  }
-  return btoa(binary)
-}
-
-let fontsLoaded = false
-let robotoRegularB64 = ''
-let robotoBoldB64 = ''
-
-async function ensureFonts() {
-  if (fontsLoaded) return
-  ;[robotoRegularB64, robotoBoldB64] = await Promise.all([
-    loadFont(robotoRegularUrl),
-    loadFont(robotoBoldUrl),
-  ])
-  fontsLoaded = true
-}
-
 function registerFonts(doc: jsPDF) {
-  doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularB64)
+  doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularBase64)
   doc.addFont('Roboto-Regular.ttf', FONT_NAME, 'normal')
-  doc.addFileToVFS('Roboto-Bold.ttf', robotoBoldB64)
+  doc.addFileToVFS('Roboto-Bold.ttf', robotoBoldBase64)
   doc.addFont('Roboto-Bold.ttf', FONT_NAME, 'bold')
   doc.setFont(FONT_NAME, 'normal')
 }
 
 export async function generatePdf(invoice: Invoice): Promise<Blob> {
-  await ensureFonts()
-
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   registerFonts(doc)
   let y = 20

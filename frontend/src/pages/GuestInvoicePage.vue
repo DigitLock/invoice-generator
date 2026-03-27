@@ -21,11 +21,11 @@ import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useInvoiceStore } from '@/stores/invoice'
 import InvoiceForm from '@/components/invoice/InvoiceForm.vue'
-import { generatePdf } from '@/services/pdfGenerator'
 
 const { invoice } = storeToRefs(useInvoiceStore())
 
 async function handleGeneratePdf() {
+  const { generatePdf } = await import('@/services/pdfGenerator')
   await generatePdf(invoice.value)
 }
 </script>

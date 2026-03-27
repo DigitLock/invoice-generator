@@ -2,9 +2,9 @@
 
 ## 1. Overview
 
-- **Document Owner:** Igor Kudinov
+- **Document Owner:** Erik Lindström
 - **Initiative Link:** —
-- **Main Stakeholder:** Igor Kudinov
+- **Main Stakeholder:** Erik Lindström
 - **Link to Architecture Documentation:** Invoice Generator SRS
 - **Link to Rollout Plan:** TBD
 - **Other Related Documents:** Expense Tracker (future integration candidate)
@@ -100,9 +100,9 @@ The project fits into the ecosystem of personal financial tools (alongside Expen
 | Name & Email | Title | Responsibility Zone | Approval Status | Date of Approval |
 |--------------|-------|---------------------|-----------------|------------------|
 | **Stakeholders:** | | | | |
-| Igor Kudinov | Project Owner | All decisions, requirements, priorities | — | — |
+| Erik Lindström | Project Owner | All decisions, requirements, priorities | — | — |
 | **Development team:** | | | | |
-| Igor Kudinov | Full-stack Developer | Backend, Frontend, Mobile, Infrastructure | — | — |
+| Erik Lindström | Full-stack Developer | Backend, Frontend, Mobile, Infrastructure | — | — |
 
 ---
 
@@ -292,10 +292,10 @@ flowchart TD
 
 | Risk | Severity | Mitigation Plan | Status | Owner |
 |------|----------|-----------------|--------|-------|
-| Scope creep — project grows beyond manageable size | MEDIUM | Strict MVP adherence, new ideas go to backlog, regular scope reviews | CONFIRMED | Igor Kudinov |
-| Time constraints — balancing main job, YouTube channel, and this project | MEDIUM | Realistic timelines, iterative delivery, MVP-first approach | CONFIRMED | Igor Kudinov |
-| PDF rendering inconsistency — different browsers render PDFs differently | LOW | Test on major browsers, use well-supported libraries | TO CONFIRM | Igor Kudinov |
-| Data loss on self-hosted server | LOW | Regular database backups, documented recovery procedure | TO CONFIRM | Igor Kudinov |
+| Scope creep — project grows beyond manageable size | MEDIUM | Strict MVP adherence, new ideas go to backlog, regular scope reviews | CONFIRMED | Erik Lindström |
+| Time constraints — balancing main job, YouTube channel, and this project | MEDIUM | Realistic timelines, iterative delivery, MVP-first approach | CONFIRMED | Erik Lindström |
+| PDF rendering inconsistency — different browsers render PDFs differently | LOW | Test on major browsers, use well-supported libraries | TO CONFIRM | Erik Lindström |
+| Data loss on self-hosted server | LOW | Regular database backups, documented recovery procedure | TO CONFIRM | Erik Lindström |
 
 ---
 
@@ -431,13 +431,13 @@ flowchart TD
 
 | # | Issue | Contact Point | Decision | Status |
 |---|-------|---------------|----------|--------|
-| 1 | How to handle invoice number sequence for guest form? (no server = no persistence) | Igor Kudinov | Manual input with format suggestion; uniqueness is user's responsibility in guest mode | Decided |
-| 2 | VAT calculation complexity — different rates per country/client? | Igor Kudinov | MVP: single editable rate per invoice (default 0%); advanced VAT logic in roadmap | Decided |
-| 3 | Domain SSL certificates management | Igor Kudinov | Cloudflare Tunnel for all traffic | Decided |
-| 4 | Mobile app distribution — TestFlight only or public App Store release? | Igor Kudinov | TestFlight/APK for personal use; public release in Future Roadmap | Decided |
-| 5 | Should inactive clients be hidden or just disabled for invoice creation? | Igor Kudinov | TBD — decide during Stage 3 UX design | Open |
-| 6 | Invoice PDF template customization — how flexible should it be? | Igor Kudinov | MVP: fixed template based on sample; customization in Future Roadmap | Decided |
-| 7 | Client-side PDF library choice for Stage 1 (guest mode) | Igor Kudinov | TBD — evaluate jsPDF, pdf-lib, or similar | Open |
+| 1 | How to handle invoice number sequence for guest form? (no server = no persistence) | Erik Lindström | Manual input with format suggestion; uniqueness is user's responsibility in guest mode | Decided |
+| 2 | VAT calculation complexity — different rates per country/client? | Erik Lindström | MVP: single editable rate per invoice (default 0%); advanced VAT logic in roadmap | Decided |
+| 3 | Domain SSL certificates management | Erik Lindström | Cloudflare Tunnel for all traffic | Decided |
+| 4 | Mobile app distribution — TestFlight only or public App Store release? | Erik Lindström | TestFlight/APK for personal use; public release in Future Roadmap | Decided |
+| 5 | Should inactive clients be hidden or just disabled for invoice creation? | Erik Lindström | TBD — decide during Stage 3 UX design | Open |
+| 6 | Invoice PDF template customization — how flexible should it be? | Erik Lindström | MVP: fixed template based on sample; customization in Future Roadmap | Decided |
+| 7 | Client-side PDF library choice for Stage 1 (guest mode) | Erik Lindström | TBD — evaluate jsPDF, pdf-lib, or similar | Open |
 
 ---
 

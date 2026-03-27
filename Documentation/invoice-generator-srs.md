@@ -33,7 +33,7 @@ The SRS covers the v0.1.0 MVP implementation with focus on essential functionali
 **Target Audience**
 
 - Software developer implementing the MVP
-- Business stakeholder (Igor Kudinov) for requirement validation
+- Business stakeholder (Erik Lindström) for requirement validation
 - QA engineer for testing specification
 - Portfolio reviewers for system analysis demonstration
 
@@ -195,30 +195,30 @@ Token validated using shared `SECRET_KEY` environment variable.
   "deleted_at": null,
   "company": {
     "id": 1,
-    "name": "IGOR KUDINOV PR NOVI SAD",
-    "contact_person": "Igor Kudinov",
-    "address": "Mite Ružića 2/2/3, Novi Sad, Serbia",
-    "phone": "+381601234567",
-    "vat_number": "114606158",
-    "reg_number": "67709977"
+    "name": "Nordic Digital Solutions OÜ",
+    "contact_person": "Erik Lindström",
+    "address": "Tornimäe 5, 10145 Tallinn, Estonia",
+    "phone": "+372 5551 2345",
+    "vat_number": "EE102345678",
+    "reg_number": "16789012"
   },
   "client": {
     "id": 3,
-    "name": "xpate Links SIA",
+    "name": "Baltica Consulting Group SIA",
     "contact_person": "Accounting Department",
-    "email": "accounting@xpate.com",
-    "address": "Dzirnavu street 42, Riga LV-1010, Latvia",
+    "email": "billing@baltica-consulting.lv",
+    "address": "Brīvības iela 78, Rīga LV-1001, Latvia",
     "vat_number": null,
-    "reg_number": "40203300205"
+    "reg_number": "40203456789"
   },
   "bank_account": {
     "id": 5,
     "company_id": 1,
-    "bank_name": "ALTA BANKA AD BEOGRAD",
-    "bank_address": "Bulevar Zorana Đinđića 121, 11070 Beograd, Serbia",
-    "account_holder": "Igor Kudinov",
-    "iban": "RS35190007100003138552",
-    "swift": "JMBNRSBG",
+    "bank_name": "Luminor Bank AS",
+    "bank_address": "Liivalaia 45, 10145 Tallinn, Estonia",
+    "account_holder": "Erik Lindström",
+    "iban": "EE891234567890123456",
+    "swift": "RIKOEE22",
     "currency": "EUR"
   },
   "items": [
@@ -299,7 +299,7 @@ Same JWT authentication as POST /api/v1/invoices. User can only retrieve invoice
 | status | string | No | Filter by status: draft, sent, partially_paid, paid, cancelled | (all) | "draft" |
 | is_overdue | boolean | No | Filter by overdue flag | (all) | true |
 | currency | string | No | Filter by currency | (all) | "EUR" |
-| client_name | string | No | Filter by client name (partial match, case-insensitive) | (all) | "xpate" |
+| client_name | string | No | Filter by client name (partial match, case-insensitive) | (all) | "baltica" |
 | company_id | integer | No | Filter by company | (all) | 1 |
 | date_from | string (ISO 8601) | No | Filter invoices with issue_date >= this date | (all) | "2026-01-01" |
 | date_to | string (ISO 8601) | No | Filter invoices with issue_date <= this date | (all) | "2026-12-31" |
@@ -322,8 +322,8 @@ Same JWT authentication as POST /api/v1/invoices. User can only retrieve invoice
       "status": "draft",
       "is_overdue": false,
       "currency": "EUR",
-      "company_name": "IGOR KUDINOV PR NOVI SAD",
-      "client_name": "xpate Links SIA",
+      "company_name": "Nordic Digital Solutions OÜ",
+      "client_name": "Baltica Consulting Group SIA",
       "subtotal": "3750.98",
       "vat_amount": "0.00",
       "total": "3750.98",
@@ -560,12 +560,12 @@ Creates a new company profile for the authenticated user's family.
 
 ```json
 {
-  "name": "IGOR KUDINOV PR NOVI SAD",
-  "contact_person": "Igor Kudinov",
-  "address": "Mite Ružića 2/2/3, Novi Sad, Serbia",
-  "phone": "+381601234567",
-  "vat_number": "114606158",
-  "reg_number": "67709977"
+  "name": "Nordic Digital Solutions OÜ",
+  "contact_person": "Erik Lindström",
+  "address": "Tornimäe 5, 10145 Tallinn, Estonia",
+  "phone": "+372 5551 2345",
+  "vat_number": "EE102345678",
+  "reg_number": "16789012"
 }
 ```
 
@@ -606,12 +606,12 @@ Creates a new client for the authenticated user's family.
 
 ```json
 {
-  "name": "xpate Links SIA",
+  "name": "Baltica Consulting Group SIA",
   "contact_person": "Accounting Department",
-  "email": "accounting@xpate.com",
-  "address": "Dzirnavu street 42, Riga LV-1010, Latvia",
+  "email": "billing@baltica-consulting.lv",
+  "address": "Brīvības iela 78, Rīga LV-1001, Latvia",
   "vat_number": null,
-  "reg_number": "40203300205",
+  "reg_number": "40203456789",
   "contract_reference": "Service Agreement dated 26.01.2026",
   "contract_notes": "Net 30 payment terms",
   "status": "active"
@@ -660,11 +660,11 @@ Creates a new bank account for the specified company.
 
 ```json
 {
-  "bank_name": "ALTA BANKA AD BEOGRAD",
-  "bank_address": "Bulevar Zorana Đinđića 121, 11070 Beograd, Serbia",
-  "account_holder": "Igor Kudinov",
-  "iban": "RS35190007100003138552",
-  "swift": "JMBNRSBG",
+  "bank_name": "Luminor Bank AS",
+  "bank_address": "Liivalaia 45, 10145 Tallinn, Estonia",
+  "account_holder": "Erik Lindström",
+  "iban": "EE891234567890123456",
+  "swift": "RIKOEE22",
   "currency": "EUR",
   "is_default": true
 }

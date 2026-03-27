@@ -130,13 +130,18 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   y += 6
 
   // --- 4. LINE ITEMS TABLE ---
-  const colDesc = MARGIN_L
-  const colQty = MARGIN_L + CONTENT_W * 0.5
-  const colPrice = MARGIN_L + CONTENT_W * 0.75
-  const colTotal = PAGE_W - MARGIN_R
+  const colDescX = MARGIN_L
+  const descEndX = MARGIN_L + CONTENT_W * 0.48
+  const qtyStartX = descEndX
+  const qtyEndX = MARGIN_L + CONTENT_W * 0.60
+  const priceStartX = qtyEndX
+  const priceEndX = MARGIN_L + CONTENT_W * 0.82
+  const totalStartX = priceEndX
+  const totalEndX = PAGE_W - MARGIN_R
+  const colQtyCenterX = (qtyStartX + qtyEndX) / 2
+  const colPriceCenterX = (priceStartX + priceEndX) / 2
   const tableHeaderH = 9
-  const ROW_PAD_TOP = 3
-  const ROW_PAD_BOTTOM = 2
+  const ROW_PAD = 3
 
   // Table header background
   doc.setFillColor(245, 245, 245)
@@ -147,47 +152,47 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   doc.setFont(FONT_NAME, 'bold')
   doc.setFontSize(9)
   y += (tableHeaderH / 2) + 1
-  doc.text('Description', colDesc + 1, y)
-  doc.text('Qty', colQty, y, { align: 'right' })
-  doc.text('Unit Price', colPrice, y, { align: 'right' })
-  doc.text('Total', colTotal, y, { align: 'right' })
+  doc.text('Description', colDescX + 1, y)
+  doc.text('Qty', colQtyCenterX, y, { align: 'center' })
+  doc.text('Unit Price', colPriceCenterX, y, { align: 'center' })
+  doc.text('Total', totalEndX, y, { align: 'right' })
   y = y + (tableHeaderH / 2) - 1
   addLine(y)
-  y += ROW_PAD_TOP
+  y += ROW_PAD
 
   // Table rows
   doc.setFont(FONT_NAME, 'normal')
-  const descMaxW = CONTENT_W * 0.46
+  const descMaxW = descEndX - colDescX - 2
   for (let idx = 0; idx < invoice.items.length; idx++) {
     const item = invoice.items[idx]
     if (!item.description && !item.quantity && !item.unitPrice) continue
     checkPageBreak(10)
 
     const descLines = doc.splitTextToSize(item.description || '', descMaxW)
-    doc.text(descLines, colDesc + 1, y)
-    doc.text(item.quantity || '0', colQty, y, { align: 'right' })
+    doc.text(descLines, colDescX + 1, y)
+    doc.text(item.quantity || '0', colQtyCenterX, y, { align: 'center' })
     doc.text(
       formatAmount(item.unitPrice, invoice.currency),
-      colPrice,
+      colPriceCenterX,
       y,
-      { align: 'right' },
+      { align: 'center' },
     )
     doc.text(
       formatAmount(item.total, invoice.currency),
-      colTotal,
+      totalEndX,
       y,
       { align: 'right' },
     )
 
     const rowH = Math.max(descLines.length * LINE_HEIGHT, 6)
-    y += rowH + ROW_PAD_BOTTOM
+    y += rowH + ROW_PAD
 
     // Light row separator with padding (except after last item)
     if (idx < invoice.items.length - 1) {
       doc.setDrawColor(230, 230, 230)
       doc.setLineWidth(0.1)
       doc.line(MARGIN_L, y, PAGE_W - MARGIN_R, y)
-      y += ROW_PAD_TOP
+      y += ROW_PAD
     }
   }
 

@@ -141,7 +141,7 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   const colQtyCenterX = (qtyStartX + qtyEndX) / 2
   const colPriceCenterX = (priceStartX + priceEndX) / 2
   const tableHeaderH = 9
-  const ROW_PAD = 3
+  const ROW_PAD = 4
 
   // Table header background
   doc.setFillColor(245, 245, 245)
@@ -168,21 +168,21 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
   for (let idx = 0; idx < visibleItems.length; idx++) {
     const item = visibleItems[idx]
 
-    // 1. Draw separator line at current Y (light for inter-row, none for first)
+    // 1. Draw light separator (skip first row — header bottom line is the top)
     if (idx > 0) {
       doc.setDrawColor(230, 230, 230)
       doc.setLineWidth(0.1)
       doc.line(MARGIN_L, y, PAGE_W - MARGIN_R, y)
     }
 
-    // 2. Pad down 3mm after line
-    y += ROW_PAD
+    // 2. Space after separator, then advance to baseline
+    y += ROW_PAD + LINE_HEIGHT
 
     checkPageBreak(10)
 
-    // 3. Render text at current Y
-    const descLines = doc.splitTextToSize(item.description || '', descMaxW)
-    doc.text(descLines, colDescX + 1, y)
+    // 3. Render first line of text at baseline Y
+    const descLines: string[] = doc.splitTextToSize(item.description || '', descMaxW)
+    doc.text(descLines[0] || '', colDescX + 1, y)
     doc.text(item.quantity || '0', colQtyCenterX, y, { align: 'center' })
     doc.text(
       formatAmount(item.unitPrice, invoice.currency),
@@ -197,9 +197,14 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
       { align: 'right' },
     )
 
-    // 4-5. Advance Y by text height + 3mm padding before next line
-    const textH = Math.max(descLines.length * LINE_HEIGHT, LINE_HEIGHT)
-    y += textH + ROW_PAD
+    // 4. Render additional wrapped description lines
+    for (let line = 1; line < descLines.length; line++) {
+      y += LINE_HEIGHT
+      doc.text(descLines[line], colDescX + 1, y)
+    }
+
+    // 5. Space before next separator
+    y += ROW_PAD
   }
 
   y += 2

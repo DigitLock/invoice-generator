@@ -2,12 +2,16 @@
   <div class="mx-auto max-w-7xl px-4 py-8 sm:py-16">
     <div class="grid grid-cols-1 items-center gap-8 sm:gap-12 lg:grid-cols-2">
       <!-- Left: invoice preview image -->
-      <div class="flex justify-center">
-        <img
-          src="/invoice-preview.png"
-          alt="Sample invoice preview"
-          class="max-h-[500px] w-auto rounded-lg border border-gray-200 shadow-lg"
-        />
+      <div class="flex flex-col items-center gap-2">
+        <a href="/invoice-preview.pdf" target="_blank" rel="noopener"
+          class="inline-block transition-transform duration-200 hover:scale-[1.02] hover:shadow-xl rounded-lg">
+          <img
+            src="/invoice-preview.png"
+            alt="Sample invoice preview"
+            class="max-h-[500px] w-auto rounded-lg border border-gray-200 shadow-lg cursor-pointer"
+          />
+        </a>
+        <p class="text-sm text-gray-400">Click to preview sample</p>
       </div>
 
       <!-- Right: action buttons -->

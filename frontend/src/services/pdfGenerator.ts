@@ -119,8 +119,9 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
     if (sellerWrapped.length > 0) doc.text(sellerWrapped, sellerX, y)
     if (buyerWrapped.length > 0) doc.text(buyerWrapped, buyerX, y)
 
-    const renderedLines = Math.max(sellerWrapped.length, buyerWrapped.length, 1)
-    y += renderedLines * LINE_HEIGHT + 0.5
+    const sellerH = sellerWrapped.length * LINE_HEIGHT
+    const buyerH = buyerWrapped.length * LINE_HEIGHT
+    y += Math.max(sellerH, buyerH, LINE_HEIGHT) + 1
   }
   y += 6
 
@@ -173,13 +174,14 @@ export async function generatePdf(invoice: Invoice): Promise<Blob> {
     )
 
     const rowH = Math.max(descLines.length * LINE_HEIGHT, 6)
-    y += rowH
+    y += rowH + 1
 
     // Light row separator (except after last item)
     if (idx < invoice.items.length - 1) {
       doc.setDrawColor(230, 230, 230)
       doc.setLineWidth(0.1)
-      doc.line(MARGIN_L, y - 1, PAGE_W - MARGIN_R, y - 1)
+      doc.line(MARGIN_L, y, PAGE_W - MARGIN_R, y)
+      y += 3
     }
   }
 

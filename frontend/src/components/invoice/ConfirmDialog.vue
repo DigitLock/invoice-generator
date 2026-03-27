@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
+    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="fixed inset-0 bg-black/50" @click="$emit('cancel')" />
       <div class="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
         <h2 class="text-lg font-semibold text-gray-900">Confirm PDF Generation</h2>

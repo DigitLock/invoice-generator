@@ -4,11 +4,11 @@
     <InvoiceForm ref="formRef" @submit="handleSubmit">
       <template #actions>
         <button type="submit"
-          class="rounded-md bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700">
+          class="w-full sm:w-auto rounded-md bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700">
           Generate PDF
         </button>
         <RouterLink to="/"
-          class="rounded-md border border-gray-300 px-6 py-2 text-gray-700 font-medium hover:bg-gray-50">
+          class="w-full sm:w-auto rounded-md border border-gray-300 px-6 py-2 text-center text-gray-700 font-medium hover:bg-gray-50">
           Cancel
         </RouterLink>
       </template>

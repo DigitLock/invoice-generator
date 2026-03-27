@@ -18,7 +18,7 @@
       />
     </div>
 
-    <div class="flex gap-3">
+    <div class="flex flex-col gap-3 sm:flex-row">
       <slot name="actions" />
     </div>
   </form>

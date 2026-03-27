@@ -2,7 +2,8 @@
   <fieldset class="space-y-4">
     <legend class="text-lg font-medium text-gray-900">Line Items</legend>
     <p v-if="errors.lineItems" class="text-sm text-red-600">{{ errors.lineItems }}</p>
-    <table class="w-full text-sm">
+    <div class="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+    <table class="w-full min-w-[500px] text-sm">
       <thead>
         <tr class="border-b text-left text-gray-700">
           <th class="pb-2">#</th>
@@ -36,6 +37,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
     <button v-if="invoice.items.length < 10" type="button" @click="addItem"
       class="text-sm text-blue-600 hover:text-blue-800">
       + Add Item

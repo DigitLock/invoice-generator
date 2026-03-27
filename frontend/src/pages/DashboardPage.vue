@@ -80,7 +80,7 @@ function statusClass(status: string): string {
 
 onMounted(async () => {
   try {
-    const response = await fetchInvoices(1, 10)
+    const response = await fetchInvoices({ page: 1, page_size: 10 })
     invoices.value = response.invoices
   } catch {
     // API error handled by api.ts (401 → redirect)

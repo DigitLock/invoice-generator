@@ -3,9 +3,11 @@
     <div class="grid grid-cols-1 items-center gap-8 sm:gap-12 lg:grid-cols-2">
       <!-- Left: invoice preview image -->
       <div class="flex justify-center">
-        <div class="h-64 w-48 sm:h-96 sm:w-72 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-400 text-sm">
-          Invoice Preview
-        </div>
+        <img
+          src="/invoice-preview.png"
+          alt="Sample invoice preview"
+          class="max-h-[500px] w-auto rounded-lg border border-gray-200 shadow-lg"
+        />
       </div>
 
       <!-- Right: action buttons -->

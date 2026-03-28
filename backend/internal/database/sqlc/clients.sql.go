@@ -32,7 +32,7 @@ RETURNING id, family_id, name, contact_person, email, address, vat_number, reg_n
 `
 
 type CreateClientParams struct {
-	FamilyID          int32       `json:"family_id"`
+	FamilyID          string      `json:"family_id"`
 	Name              string      `json:"name"`
 	ContactPerson     pgtype.Text `json:"contact_person"`
 	Email             pgtype.Text `json:"email"`
@@ -84,8 +84,8 @@ WHERE id = $1 AND family_id = $2 AND deleted_at IS NULL
 `
 
 type DeleteClientParams struct {
-	ID       int64 `json:"id"`
-	FamilyID int32 `json:"family_id"`
+	ID       int64  `json:"id"`
+	FamilyID string `json:"family_id"`
 }
 
 func (q *Queries) DeleteClient(ctx context.Context, arg DeleteClientParams) error {
@@ -99,8 +99,8 @@ WHERE id = $1 AND family_id = $2 AND deleted_at IS NULL
 `
 
 type GetClientParams struct {
-	ID       int64 `json:"id"`
-	FamilyID int32 `json:"family_id"`
+	ID       int64  `json:"id"`
+	FamilyID string `json:"family_id"`
 }
 
 func (q *Queries) GetClient(ctx context.Context, arg GetClientParams) (Client, error) {
@@ -131,7 +131,7 @@ WHERE family_id = $1 AND deleted_at IS NULL
 ORDER BY name
 `
 
-func (q *Queries) ListClients(ctx context.Context, familyID int32) ([]Client, error) {
+func (q *Queries) ListClients(ctx context.Context, familyID string) ([]Client, error) {
 	rows, err := q.db.Query(ctx, listClients, familyID)
 	if err != nil {
 		return nil, err
@@ -173,7 +173,7 @@ ORDER BY name
 `
 
 type ListClientsByStatusParams struct {
-	FamilyID int32  `json:"family_id"`
+	FamilyID string `json:"family_id"`
 	Status   string `json:"status"`
 }
 
@@ -229,7 +229,7 @@ RETURNING id, family_id, name, contact_person, email, address, vat_number, reg_n
 
 type UpdateClientParams struct {
 	ID                int64       `json:"id"`
-	FamilyID          int32       `json:"family_id"`
+	FamilyID          string      `json:"family_id"`
 	Name              string      `json:"name"`
 	ContactPerson     pgtype.Text `json:"contact_person"`
 	Email             pgtype.Text `json:"email"`

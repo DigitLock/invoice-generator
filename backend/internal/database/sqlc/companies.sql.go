@@ -32,7 +32,7 @@ RETURNING id, family_id, name, contact_person, address, phone, vat_number, reg_n
 `
 
 type CreateCompanyParams struct {
-	FamilyID      int32       `json:"family_id"`
+	FamilyID      string      `json:"family_id"`
 	Name          string      `json:"name"`
 	ContactPerson string      `json:"contact_person"`
 	Address       string      `json:"address"`
@@ -75,8 +75,8 @@ WHERE id = $1 AND family_id = $2 AND deleted_at IS NULL
 `
 
 type DeleteCompanyParams struct {
-	ID       int64 `json:"id"`
-	FamilyID int32 `json:"family_id"`
+	ID       int64  `json:"id"`
+	FamilyID string `json:"family_id"`
 }
 
 func (q *Queries) DeleteCompany(ctx context.Context, arg DeleteCompanyParams) error {
@@ -90,8 +90,8 @@ WHERE id = $1 AND family_id = $2 AND deleted_at IS NULL
 `
 
 type GetCompanyParams struct {
-	ID       int64 `json:"id"`
-	FamilyID int32 `json:"family_id"`
+	ID       int64  `json:"id"`
+	FamilyID string `json:"family_id"`
 }
 
 func (q *Queries) GetCompany(ctx context.Context, arg GetCompanyParams) (Company, error) {
@@ -119,7 +119,7 @@ WHERE family_id = $1 AND deleted_at IS NULL
 ORDER BY name
 `
 
-func (q *Queries) ListCompanies(ctx context.Context, familyID int32) ([]Company, error) {
+func (q *Queries) ListCompanies(ctx context.Context, familyID string) ([]Company, error) {
 	rows, err := q.db.Query(ctx, listCompanies, familyID)
 	if err != nil {
 		return nil, err
@@ -165,7 +165,7 @@ RETURNING id, family_id, name, contact_person, address, phone, vat_number, reg_n
 
 type UpdateCompanyParams struct {
 	ID            int64       `json:"id"`
-	FamilyID      int32       `json:"family_id"`
+	FamilyID      string      `json:"family_id"`
 	Name          string      `json:"name"`
 	ContactPerson string      `json:"contact_person"`
 	Address       string      `json:"address"`

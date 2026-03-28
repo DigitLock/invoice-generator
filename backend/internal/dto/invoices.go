@@ -48,8 +48,8 @@ type InvoiceItemInput struct {
 type InvoiceResponse struct {
 	ID                int64                `json:"id"`
 	InvoiceNumber     string               `json:"invoice_number"`
-	UserID            int32                `json:"user_id"`
-	FamilyID          int32                `json:"family_id"`
+	UserID            string               `json:"user_id"`
+	FamilyID          string               `json:"family_id"`
 	CompanyID         int64                `json:"company_id"`
 	ClientID          int64                `json:"client_id"`
 	BankAccountID     int64                `json:"bank_account_id"`

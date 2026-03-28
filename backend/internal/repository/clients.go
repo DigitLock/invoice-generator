@@ -11,19 +11,19 @@ type ClientRepository struct {
 	q *sqlc.Queries
 }
 
-func (r *ClientRepository) GetByID(ctx context.Context, id int64, familyID int32) (sqlc.Client, error) {
+func (r *ClientRepository) GetByID(ctx context.Context, id int64, familyID string) (sqlc.Client, error) {
 	return r.q.GetClient(ctx, sqlc.GetClientParams{ID: id, FamilyID: familyID})
 }
 
-func (r *ClientRepository) List(ctx context.Context, familyID int32) ([]sqlc.Client, error) {
+func (r *ClientRepository) List(ctx context.Context, familyID string) ([]sqlc.Client, error) {
 	return r.q.ListClients(ctx, familyID)
 }
 
-func (r *ClientRepository) ListByStatus(ctx context.Context, familyID int32, status string) ([]sqlc.Client, error) {
+func (r *ClientRepository) ListByStatus(ctx context.Context, familyID string, status string) ([]sqlc.Client, error) {
 	return r.q.ListClientsByStatus(ctx, sqlc.ListClientsByStatusParams{FamilyID: familyID, Status: status})
 }
 
-func (r *ClientRepository) Create(ctx context.Context, familyID int32, params sqlc.CreateClientParams) (sqlc.Client, error) {
+func (r *ClientRepository) Create(ctx context.Context, familyID string, params sqlc.CreateClientParams) (sqlc.Client, error) {
 	params.FamilyID = familyID
 	if params.Status == "" {
 		params.Status = "active"
@@ -31,13 +31,13 @@ func (r *ClientRepository) Create(ctx context.Context, familyID int32, params sq
 	return r.q.CreateClient(ctx, params)
 }
 
-func (r *ClientRepository) Update(ctx context.Context, id int64, familyID int32, params sqlc.UpdateClientParams) (sqlc.Client, error) {
+func (r *ClientRepository) Update(ctx context.Context, id int64, familyID string, params sqlc.UpdateClientParams) (sqlc.Client, error) {
 	params.ID = id
 	params.FamilyID = familyID
 	return r.q.UpdateClient(ctx, params)
 }
 
-func (r *ClientRepository) Delete(ctx context.Context, id int64, familyID int32) error {
+func (r *ClientRepository) Delete(ctx context.Context, id int64, familyID string) error {
 	hasInvoices, err := r.q.ClientHasNonDraftInvoices(ctx, id)
 	if err != nil {
 		return fmt.Errorf("check invoices: %w", err)

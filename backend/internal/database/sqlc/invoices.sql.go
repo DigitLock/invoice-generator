@@ -17,7 +17,7 @@ SELECT COUNT(*) FROM invoices
 WHERE family_id = $1 AND deleted_at IS NULL
 `
 
-func (q *Queries) CountInvoices(ctx context.Context, familyID int32) (int64, error) {
+func (q *Queries) CountInvoices(ctx context.Context, familyID string) (int64, error) {
 	row := q.db.QueryRow(ctx, countInvoices, familyID)
 	var count int64
 	err := row.Scan(&count)
@@ -36,8 +36,8 @@ RETURNING id, user_id, family_id, company_id, client_id, bank_account_id, invoic
 `
 
 type CreateInvoiceParams struct {
-	UserID            int32           `json:"user_id"`
-	FamilyID          int32           `json:"family_id"`
+	UserID            string          `json:"user_id"`
+	FamilyID          string          `json:"family_id"`
 	CompanyID         int64           `json:"company_id"`
 	ClientID          int64           `json:"client_id"`
 	BankAccountID     int64           `json:"bank_account_id"`
@@ -108,8 +108,8 @@ WHERE id = $1 AND family_id = $2 AND deleted_at IS NULL
 `
 
 type DeleteInvoiceParams struct {
-	ID       int64 `json:"id"`
-	FamilyID int32 `json:"family_id"`
+	ID       int64  `json:"id"`
+	FamilyID string `json:"family_id"`
 }
 
 func (q *Queries) DeleteInvoice(ctx context.Context, arg DeleteInvoiceParams) error {
@@ -123,8 +123,8 @@ WHERE id = $1 AND family_id = $2 AND deleted_at IS NULL
 `
 
 type GetInvoiceParams struct {
-	ID       int64 `json:"id"`
-	FamilyID int32 `json:"family_id"`
+	ID       int64  `json:"id"`
+	FamilyID string `json:"family_id"`
 }
 
 func (q *Queries) GetInvoice(ctx context.Context, arg GetInvoiceParams) (Invoice, error) {
@@ -168,7 +168,7 @@ WHERE user_id = $1
 `
 
 type GetMaxInvoiceSequenceParams struct {
-	UserID        int32  `json:"user_id"`
+	UserID        string `json:"user_id"`
 	InvoiceNumber string `json:"invoice_number"`
 }
 
@@ -193,15 +193,15 @@ LIMIT $2 OFFSET $3
 `
 
 type ListInvoicesParams struct {
-	FamilyID int32 `json:"family_id"`
-	Limit    int32 `json:"limit"`
-	Offset   int32 `json:"offset"`
+	FamilyID string `json:"family_id"`
+	Limit    int32  `json:"limit"`
+	Offset   int32  `json:"offset"`
 }
 
 type ListInvoicesRow struct {
 	ID                int64              `json:"id"`
-	UserID            int32              `json:"user_id"`
-	FamilyID          int32              `json:"family_id"`
+	UserID            string             `json:"user_id"`
+	FamilyID          string             `json:"family_id"`
 	CompanyID         int64              `json:"company_id"`
 	ClientID          int64              `json:"client_id"`
 	BankAccountID     int64              `json:"bank_account_id"`
@@ -294,7 +294,7 @@ RETURNING id, user_id, family_id, company_id, client_id, bank_account_id, invoic
 
 type UpdateInvoiceParams struct {
 	ID                int64           `json:"id"`
-	FamilyID          int32           `json:"family_id"`
+	FamilyID          string          `json:"family_id"`
 	CompanyID         int64           `json:"company_id"`
 	ClientID          int64           `json:"client_id"`
 	BankAccountID     int64           `json:"bank_account_id"`
@@ -366,9 +366,9 @@ RETURNING id, user_id, family_id, company_id, client_id, bank_account_id, invoic
 `
 
 type UpdateInvoiceOverdueParams struct {
-	ID        int64 `json:"id"`
-	FamilyID  int32 `json:"family_id"`
-	IsOverdue bool  `json:"is_overdue"`
+	ID        int64  `json:"id"`
+	FamilyID  string `json:"family_id"`
+	IsOverdue bool   `json:"is_overdue"`
 }
 
 func (q *Queries) UpdateInvoiceOverdue(ctx context.Context, arg UpdateInvoiceOverdueParams) (Invoice, error) {
@@ -410,7 +410,7 @@ RETURNING id, user_id, family_id, company_id, client_id, bank_account_id, invoic
 
 type UpdateInvoiceStatusParams struct {
 	ID       int64  `json:"id"`
-	FamilyID int32  `json:"family_id"`
+	FamilyID string `json:"family_id"`
 	Status   string `json:"status"`
 }
 

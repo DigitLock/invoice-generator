@@ -24,11 +24,11 @@ type InvoiceRepository struct {
 	pool *pgxpool.Pool
 }
 
-func (r *InvoiceRepository) GetByID(ctx context.Context, id int64, familyID int32) (sqlc.Invoice, error) {
+func (r *InvoiceRepository) GetByID(ctx context.Context, id int64, familyID string) (sqlc.Invoice, error) {
 	return r.q.GetInvoice(ctx, sqlc.GetInvoiceParams{ID: id, FamilyID: familyID})
 }
 
-func (r *InvoiceRepository) List(ctx context.Context, familyID int32, page, pageSize int) ([]sqlc.ListInvoicesRow, int64, error) {
+func (r *InvoiceRepository) List(ctx context.Context, familyID string, page, pageSize int) ([]sqlc.ListInvoicesRow, int64, error) {
 	offset := (page - 1) * pageSize
 	rows, err := r.q.ListInvoices(ctx, sqlc.ListInvoicesParams{
 		FamilyID: familyID,
@@ -45,7 +45,7 @@ func (r *InvoiceRepository) List(ctx context.Context, familyID int32, page, page
 	return rows, total, nil
 }
 
-func (r *InvoiceRepository) Create(ctx context.Context, userID, familyID int32, req dto.CreateInvoiceRequest) (sqlc.Invoice, []sqlc.InvoiceItem, error) {
+func (r *InvoiceRepository) Create(ctx context.Context, userID string, familyID string, req dto.CreateInvoiceRequest) (sqlc.Invoice, []sqlc.InvoiceItem, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return sqlc.Invoice{}, nil, fmt.Errorf("begin tx: %w", err)
@@ -144,7 +144,7 @@ func (r *InvoiceRepository) Create(ctx context.Context, userID, familyID int32, 
 	return invoice, createdItems, nil
 }
 
-func (r *InvoiceRepository) Update(ctx context.Context, id int64, familyID int32, req dto.UpdateInvoiceRequest) (sqlc.Invoice, []sqlc.InvoiceItem, error) {
+func (r *InvoiceRepository) Update(ctx context.Context, id int64, familyID string, req dto.UpdateInvoiceRequest) (sqlc.Invoice, []sqlc.InvoiceItem, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return sqlc.Invoice{}, nil, fmt.Errorf("begin tx: %w", err)
@@ -242,7 +242,7 @@ func (r *InvoiceRepository) Update(ctx context.Context, id int64, familyID int32
 	return invoice, createdItems, nil
 }
 
-func (r *InvoiceRepository) UpdateStatus(ctx context.Context, id int64, familyID int32, newStatus string) (sqlc.Invoice, error) {
+func (r *InvoiceRepository) UpdateStatus(ctx context.Context, id int64, familyID string, newStatus string) (sqlc.Invoice, error) {
 	invoice, err := r.q.GetInvoice(ctx, sqlc.GetInvoiceParams{ID: id, FamilyID: familyID})
 	if err != nil {
 		return sqlc.Invoice{}, fmt.Errorf("get invoice: %w", err)
@@ -269,7 +269,7 @@ func (r *InvoiceRepository) UpdateStatus(ctx context.Context, id int64, familyID
 	})
 }
 
-func (r *InvoiceRepository) UpdateOverdue(ctx context.Context, id int64, familyID int32, isOverdue bool) (sqlc.Invoice, error) {
+func (r *InvoiceRepository) UpdateOverdue(ctx context.Context, id int64, familyID string, isOverdue bool) (sqlc.Invoice, error) {
 	invoice, err := r.q.GetInvoice(ctx, sqlc.GetInvoiceParams{ID: id, FamilyID: familyID})
 	if err != nil {
 		return sqlc.Invoice{}, fmt.Errorf("get invoice: %w", err)
@@ -282,7 +282,7 @@ func (r *InvoiceRepository) UpdateOverdue(ctx context.Context, id int64, familyI
 	})
 }
 
-func (r *InvoiceRepository) Delete(ctx context.Context, id int64, familyID int32) error {
+func (r *InvoiceRepository) Delete(ctx context.Context, id int64, familyID string) error {
 	return r.q.DeleteInvoice(ctx, sqlc.DeleteInvoiceParams{ID: id, FamilyID: familyID})
 }
 
@@ -294,7 +294,7 @@ func (r *InvoiceRepository) GetBankAccount(ctx context.Context, id int64) (sqlc.
 	return r.q.GetBankAccount(ctx, id)
 }
 
-func (r *InvoiceRepository) generateNumber(ctx context.Context, q *sqlc.Queries, userID int32, issueDate time.Time) (string, error) {
+func (r *InvoiceRepository) generateNumber(ctx context.Context, q *sqlc.Queries, userID string, issueDate time.Time) (string, error) {
 	dateStr := issueDate.Format("02012006")
 	prefix := fmt.Sprintf("INV-%s-", dateStr)
 	pattern := prefix + "%"

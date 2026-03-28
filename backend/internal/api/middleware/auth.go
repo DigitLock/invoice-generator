@@ -43,12 +43,12 @@ func Auth(jwtService *auth.JWTService) func(http.Handler) http.Handler {
 	}
 }
 
-func GetUserID(ctx context.Context) (int32, bool) {
-	id, ok := ctx.Value(UserIDKey).(int32)
+func GetUserID(ctx context.Context) (string, bool) {
+	id, ok := ctx.Value(UserIDKey).(string)
 	return id, ok
 }
 
-func GetFamilyID(ctx context.Context) (int32, bool) {
-	id, ok := ctx.Value(FamilyIDKey).(int32)
+func GetFamilyID(ctx context.Context) (string, bool) {
+	id, ok := ctx.Value(FamilyIDKey).(string)
 	return id, ok
 }

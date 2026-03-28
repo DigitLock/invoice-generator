@@ -26,7 +26,7 @@ type BankAccount struct {
 
 type Client struct {
 	ID                int64              `json:"id"`
-	FamilyID          int32              `json:"family_id"`
+	FamilyID          string             `json:"family_id"`
 	Name              string             `json:"name"`
 	ContactPerson     pgtype.Text        `json:"contact_person"`
 	Email             pgtype.Text        `json:"email"`
@@ -43,7 +43,7 @@ type Client struct {
 
 type Company struct {
 	ID            int64              `json:"id"`
-	FamilyID      int32              `json:"family_id"`
+	FamilyID      string             `json:"family_id"`
 	Name          string             `json:"name"`
 	ContactPerson string             `json:"contact_person"`
 	Address       string             `json:"address"`
@@ -57,8 +57,8 @@ type Company struct {
 
 type Invoice struct {
 	ID                int64              `json:"id"`
-	UserID            int32              `json:"user_id"`
-	FamilyID          int32              `json:"family_id"`
+	UserID            string             `json:"user_id"`
+	FamilyID          string             `json:"family_id"`
 	CompanyID         int64              `json:"company_id"`
 	ClientID          int64              `json:"client_id"`
 	BankAccountID     int64              `json:"bank_account_id"`

@@ -13,6 +13,7 @@ This System Requirements Specification (SRS) document provides detailed technica
 | Version | Date | Changes |
 |---------|------|---------|
 | 0.1 | 2026-03-27 | Initial draft aligned with PRD v0.4 Stage 4 requirements |
+| 0.2 | 2026-03-28 | Add repository strategy, monetization (ads + IAP), update API base URL |
 
 **Document Purpose**
 
@@ -23,8 +24,9 @@ This document defines the mobile app architecture, navigation structure, screen 
 The mobile app is a companion to the web dashboard (Stage 3). It consumes the same REST API (Stage 2) and shares JWT authentication with Expense Tracker. The mobile app is **authorized-only** — there is no guest mode.
 
 - **Core Functionality**: Invoice creation, invoice history with filters, status management (5 statuses + isOverdue), client management (view, create, change status), read-only company/bank account viewing
+- **Monetization**: Free with ads (Google AdMob), with in-app purchase to remove ads
 - **Out of Scope**: Company/bank account editing (MO-05), guest invoice creation, registration (users register via Expense Tracker), PDF generation on device (download from server), offline mode
-- **Distribution**: TestFlight (iOS) and APK sideload (Android) for personal use; public App Store / Google Play release is in the future roadmap
+- **Distribution**: TestFlight (iOS) and APK sideload (Android) for initial testing, then public release on App Store and Google Play
 
 **Target Audience**
 
@@ -38,6 +40,55 @@ The mobile app is a companion to the web dashboard (Stage 3). It consumes the sa
 - **Invoice Generator SRS v0.2** — Backend API specification (all endpoints consumed by the mobile app)
 - **Expense Tracker** — Reference for shared JWT authentication
 
+## 1.1 Repository and Distribution Strategy
+
+### 1.1.1 Separate Repository
+
+The mobile app lives in a **separate Git repository** (`invoice-generator-mobile`), not in the `invoice-generator` monorepo. Rationale:
+
+- The mobile app will be published to App Store and Google Play as a standalone product with its own release cycle
+- App store review processes (Apple App Review, Google Play review) require independent versioning, changelogs, and build pipelines
+- Flutter project structure (ios/, android/, lib/) does not share any code with the Vue.js frontend or Go backend
+- Separate CI/CD pipelines: the web app deploys via Docker, the mobile app deploys via Fastlane/Xcode/Gradle
+- The only shared dependency is the REST API contract, which is documented in the backend SRS
+
+### 1.1.2 Monetization Model
+
+**Model:** Free with ads + in-app purchase to remove ads.
+
+| Tier | Price | Features |
+|------|-------|---------|
+| Free | $0 | Full functionality, banner ads on list screens, interstitial ad after PDF download |
+| Ad-Free | One-time purchase (~$4.99) | All ads removed permanently |
+
+**Ad Placement Strategy:**
+
+| Placement | Ad Type | Screen | Frequency |
+|-----------|---------|--------|-----------|
+| List footer | Banner (320x50) | Invoice List, Client List, Dashboard | Always visible |
+| Post-action | Interstitial (full screen) | After PDF download | Every download |
+| Post-action | Interstitial (full screen) | After invoice creation | Every 3rd invoice |
+
+**Architecture Impact:**
+
+The monetization model adds the following to the architecture:
+
+- **Ad provider wrapper** (`lib/services/ad_service.dart`): initializes AdMob, loads/shows banner and interstitial ads, respects purchase state
+- **Purchase state management** (`lib/providers/purchase_provider.dart`): tracks whether user has purchased ad-free tier, persists via `flutter_secure_storage` + receipt validation
+- **Conditional UI**: all ad widgets wrapped in a consumer that checks `isPurchased` — when purchased, ad containers collapse to zero height
+- **Purchase screen**: accessible from app settings, shows "Remove Ads" option with price, handles StoreKit (iOS) / Google Play Billing (Android) flow
+
+**Required packages:**
+
+- `google_mobile_ads` — AdMob banner and interstitial ads
+- `in_app_purchase` — cross-platform in-app purchase (wraps StoreKit + Google Play Billing)
+
+**Revenue considerations:**
+
+- AdMob requires privacy disclosures (GDPR consent dialog, App Tracking Transparency on iOS)
+- In-app purchase requires App Store / Google Play developer accounts ($99/year Apple, $25 one-time Google)
+- Receipt validation can be done client-side for MVP; server-side validation is a future improvement
+
 **Technology Stack**
 
 - **Framework**: Flutter 3.x (Dart)
@@ -47,6 +98,8 @@ The mobile app is a companion to the web dashboard (Stage 3). It consumes the sa
 - **Navigation**: GoRouter (declarative, supports deep linking)
 - **UI**: Material Design 3 with custom theme matching web app colors
 - **PDF Viewing**: `open_file` or `url_launcher` to open server-generated PDFs
+- **Ads**: `google_mobile_ads` (AdMob banners + interstitials)
+- **In-App Purchase**: `in_app_purchase` (StoreKit for iOS, Google Play Billing for Android)
 - **Build**: Flutter CLI, Fastlane (optional for CI/CD)
 - **Minimum OS**: iOS 15.0+, Android API 26+ (Android 8.0)
 
@@ -76,7 +129,7 @@ The mobile app is a companion to the web dashboard (Stage 3). It consumes the sa
 │                     │                              │
 │  ┌──────────────────┴──────────────────────────┐ │
 │  │              Data Layer                       │ │
-│  │  ApiClient (dio) → REST API (port 8081)       │ │
+│  │  ApiClient (dio) → REST API (/api/v1/)         │ │
 │  │  SecureStorage → JWT token persistence        │ │
 │  │  Models (Dart classes matching API responses)  │ │
 │  └─────────────────────────────────────────────┘ │
@@ -85,9 +138,8 @@ The mobile app is a companion to the web dashboard (Stage 3). It consumes the sa
                       ▼
         ┌─────────────────────────┐
         │   Invoice Generator API  │
-        │   (Go, port 8081)        │
         │   invoice.digitlock.     │
-        │   systems/api/v1/        │
+        │   systems/api/v1/...     │
         └─────────────────────────┘
 ```
 
@@ -134,12 +186,15 @@ lib/
 │   ├── company_repository.dart        # list, get (read-only)
 │   ├── client_repository.dart         # list, get, create, update status
 │   └── bank_account_repository.dart   # list by company (read-only)
+├── services/
+│   └── ad_service.dart                # AdMob initialization, banner/interstitial management
 ├── providers/
 │   ├── auth_provider.dart
 │   ├── invoice_provider.dart
 │   ├── company_provider.dart
 │   ├── client_provider.dart
-│   └── bank_account_provider.dart
+│   ├── bank_account_provider.dart
+│   └── purchase_provider.dart         # IAP state, ad-free purchase tracking
 ├── screens/
 │   ├── login_screen.dart
 │   ├── dashboard_screen.dart
@@ -148,12 +203,14 @@ lib/
 │   ├── invoice_form_screen.dart
 │   ├── client_list_screen.dart
 │   ├── client_form_screen.dart
-│   └── company_detail_screen.dart
+│   ├── company_detail_screen.dart
+│   └── purchase_screen.dart           # "Remove Ads" IAP flow
 └── widgets/
     ├── status_badge.dart
     ├── overdue_badge.dart
     ├── invoice_card.dart
     ├── line_item_row.dart
+    ├── ad_banner.dart                 # Conditional banner ad (hidden when purchased)
     ├── loading_indicator.dart
     └── error_view.dart
 ```
@@ -443,10 +500,13 @@ Bottom Tab Bar Shell
 
 ### 2.4.1 API Client Configuration
 
+The API is accessed via the same domain as the web app, using the `/api/v1/` path prefix. The base URL is configured per environment (see section 5.2).
+
 ```dart
 // Dio instance with base URL and JWT interceptor
+// Base URL includes the /api/v1 prefix — all endpoints are relative
 final dio = Dio(BaseOptions(
-  baseUrl: 'https://invoice.digitlock.systems',
+  baseUrl: '$apiBaseUrl/api/v1',  // e.g. https://invoice.digitlock.systems/api/v1
   connectTimeout: Duration(seconds: 10),
   receiveTimeout: Duration(seconds: 30),
   headers: {'Content-Type': 'application/json'},
@@ -454,6 +514,16 @@ final dio = Dio(BaseOptions(
 
 // JWT interceptor adds Authorization header to every request
 // On 401 response: clear stored token, navigate to login
+```
+
+**Usage:** Endpoints are called relative to the base URL:
+
+```dart
+// GET https://invoice.digitlock.systems/api/v1/invoices?page=1
+final response = await dio.get('/invoices', queryParameters: {'page': 1});
+
+// POST https://invoice.digitlock.systems/api/v1/clients
+final response = await dio.post('/clients', data: clientData);
 ```
 
 ### 2.4.2 Endpoints Consumed
@@ -586,18 +656,17 @@ Consistent with web app:
 | Requirement | Detail |
 |-------------|--------|
 | Minimum version | iOS 15.0 |
-| Distribution | TestFlight (internal testing) |
+| Distribution | TestFlight (testing) → App Store (public release) |
 | Bundle ID | `systems.digitlock.invoicegenerator` |
-| Signing | Apple Developer account required |
-| Permissions | None required (no camera, location, etc.) |
+| Signing | Apple Developer account required ($99/year) |
+| Permissions | `NSUserTrackingUsageDescription` (App Tracking Transparency for AdMob) |
 | App Transport Security | HTTPS only (satisfied by Cloudflare Tunnel) |
+| StoreKit | Required for in-app purchase (remove ads) |
 
-**TestFlight deployment:**
+**Deployment phases:**
 
-1. Build: `flutter build ipa`
-2. Upload to App Store Connect via Xcode or `xcrun altool`
-3. Add internal testers in TestFlight
-4. Testers install via TestFlight app
+1. **Testing**: Build IPA (`flutter build ipa`), upload to App Store Connect, distribute via TestFlight
+2. **Public release**: Submit to App Store review with AdMob and IAP configured, privacy disclosures, and App Tracking Transparency prompt
 
 ## 4.2 Android (S4-10)
 
@@ -605,16 +674,16 @@ Consistent with web app:
 |-------------|--------|
 | Minimum SDK | API 26 (Android 8.0) |
 | Target SDK | Latest stable (API 34+) |
-| Distribution | APK sideload (direct install) |
+| Distribution | APK sideload (testing) → Google Play (public release) |
 | Package name | `systems.digitlock.invoicegenerator` |
 | Signing | Debug keystore for development, release keystore for distribution |
-| Permissions | `INTERNET` (auto-granted) |
+| Permissions | `INTERNET` (auto-granted), `com.google.android.gms.permission.AD_ID` (AdMob) |
+| Google Play Billing | Required for in-app purchase (remove ads) |
 
-**APK deployment:**
+**Deployment phases:**
 
-1. Build: `flutter build apk --release`
-2. Transfer APK to device (ADB, file share, or direct download)
-3. Install with "Allow unknown sources" enabled
+1. **Testing**: Build APK (`flutter build apk --release`), sideload to device
+2. **Public release**: Build AAB (`flutter build appbundle --release`), upload to Google Play Console with AdMob and billing configured, content rating questionnaire, and data safety form
 
 ---
 
@@ -639,6 +708,8 @@ flutter pub add shared_preferences
 flutter pub add go_router
 flutter pub add open_file
 flutter pub add intl                  # Date formatting
+flutter pub add google_mobile_ads     # AdMob banners + interstitials
+flutter pub add in_app_purchase       # Remove ads IAP
 
 # Run
 flutter run                           # Debug on connected device
@@ -647,24 +718,34 @@ flutter run --release                 # Release mode testing
 
 ## 5.2 Environment Configuration
 
-API base URL configured per environment:
+The API is accessed via a single domain with the `/api/v1/` path prefix. The base URL (without path) is configured per environment:
 
-| Environment | Base URL |
-|-------------|----------|
-| Development | `http://localhost:8081` |
-| Production | `https://invoice.digitlock.systems` |
+| Environment | Base URL | Full API path |
+|-------------|----------|---------------|
+| Development | `http://localhost:8081` | `http://localhost:8081/api/v1/...` |
+| Production | `https://invoice.digitlock.systems` | `https://invoice.digitlock.systems/api/v1/...` |
 
 Use `--dart-define=API_URL=...` at build time or a `.env` file with `flutter_dotenv`.
+
+```bash
+# Development build
+flutter run --dart-define=API_URL=http://localhost:8081
+
+# Production build
+flutter build apk --release --dart-define=API_URL=https://invoice.digitlock.systems
+```
 
 ## 5.3 Build Commands
 
 ```bash
-# iOS
-flutter build ipa                                     # Release IPA for TestFlight
+# iOS (TestFlight → App Store)
+flutter build ipa --dart-define=API_URL=https://invoice.digitlock.systems
 
-# Android
-flutter build apk --release                           # Release APK
-flutter build appbundle --release                      # AAB (if targeting Play Store later)
+# Android (APK for testing)
+flutter build apk --release --dart-define=API_URL=https://invoice.digitlock.systems
+
+# Android (AAB for Google Play)
+flutter build appbundle --release --dart-define=API_URL=https://invoice.digitlock.systems
 
 # Both platforms
 flutter test                                           # Run unit tests

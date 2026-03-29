@@ -7,7 +7,7 @@ type CreateInvoiceRequest struct {
 	ClientID          int64              `json:"client_id" validate:"required"`
 	BankAccountID     int64              `json:"bank_account_id" validate:"required"`
 	IssueDate         string             `json:"issue_date" validate:"required"`
-	DueDate           string             `json:"due_date" validate:"required"`
+	DueDate           *string            `json:"due_date" validate:"omitempty"`
 	Currency          string             `json:"currency" validate:"required,max=10"`
 	VatRate           string             `json:"vat_rate"`
 	ContractReference *string            `json:"contract_reference" validate:"omitempty,max=255"`
@@ -22,7 +22,7 @@ type UpdateInvoiceRequest struct {
 	BankAccountID     int64              `json:"bank_account_id" validate:"required"`
 	InvoiceNumber     string             `json:"invoice_number" validate:"required,max=50"`
 	IssueDate         string             `json:"issue_date" validate:"required"`
-	DueDate           string             `json:"due_date" validate:"required"`
+	DueDate           *string            `json:"due_date" validate:"omitempty"`
 	Currency          string             `json:"currency" validate:"required,max=10"`
 	VatRate           string             `json:"vat_rate"`
 	ContractReference *string            `json:"contract_reference" validate:"omitempty,max=255"`
@@ -54,7 +54,7 @@ type InvoiceResponse struct {
 	ClientID          int64                `json:"client_id"`
 	BankAccountID     int64                `json:"bank_account_id"`
 	IssueDate         string               `json:"issue_date"`
-	DueDate           string               `json:"due_date"`
+	DueDate           *string              `json:"due_date"`
 	Currency          string               `json:"currency"`
 	Status            string               `json:"status"`
 	IsOverdue         bool                 `json:"is_overdue"`
@@ -77,7 +77,7 @@ type InvoiceListItem struct {
 	ID            int64     `json:"id"`
 	InvoiceNumber string    `json:"invoice_number"`
 	IssueDate     string    `json:"issue_date"`
-	DueDate       string    `json:"due_date"`
+	DueDate       *string   `json:"due_date"`
 	Status        string    `json:"status"`
 	IsOverdue     bool      `json:"is_overdue"`
 	Currency      string    `json:"currency"`

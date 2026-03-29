@@ -58,9 +58,13 @@ func (r *InvoiceRepository) Create(ctx context.Context, userID string, familyID 
 	if err != nil {
 		return sqlc.Invoice{}, nil, fmt.Errorf("invalid issue_date: %w", err)
 	}
-	dueDate, err := time.Parse("2006-01-02", req.DueDate)
-	if err != nil {
-		return sqlc.Invoice{}, nil, fmt.Errorf("invalid due_date: %w", err)
+	var dueDateParam pgtype.Date
+	if req.DueDate != nil && *req.DueDate != "" {
+		dueDate, err := time.Parse("2006-01-02", *req.DueDate)
+		if err != nil {
+			return sqlc.Invoice{}, nil, fmt.Errorf("invalid due_date: %w", err)
+		}
+		dueDateParam = pgtype.Date{Time: dueDate, Valid: true}
 	}
 
 	invoiceNumber, err := r.generateNumber(ctx, qtx, userID, issueDate)
@@ -109,7 +113,7 @@ func (r *InvoiceRepository) Create(ctx context.Context, userID string, familyID 
 		BankAccountID:     req.BankAccountID,
 		InvoiceNumber:     invoiceNumber,
 		IssueDate:         pgtype.Date{Time: issueDate, Valid: true},
-		DueDate:           pgtype.Date{Time: dueDate, Valid: true},
+		DueDate:           dueDateParam,
 		Currency:          req.Currency,
 		VatRate:           vatRate,
 		Subtotal:          subtotal,
@@ -157,9 +161,13 @@ func (r *InvoiceRepository) Update(ctx context.Context, id int64, familyID strin
 	if err != nil {
 		return sqlc.Invoice{}, nil, fmt.Errorf("invalid issue_date: %w", err)
 	}
-	dueDate, err := time.Parse("2006-01-02", req.DueDate)
-	if err != nil {
-		return sqlc.Invoice{}, nil, fmt.Errorf("invalid due_date: %w", err)
+	var dueDateParam pgtype.Date
+	if req.DueDate != nil && *req.DueDate != "" {
+		dueDate, err := time.Parse("2006-01-02", *req.DueDate)
+		if err != nil {
+			return sqlc.Invoice{}, nil, fmt.Errorf("invalid due_date: %w", err)
+		}
+		dueDateParam = pgtype.Date{Time: dueDate, Valid: true}
 	}
 
 	vatRate := decimal.NewFromFloat(0)
@@ -203,7 +211,7 @@ func (r *InvoiceRepository) Update(ctx context.Context, id int64, familyID strin
 		BankAccountID:     req.BankAccountID,
 		InvoiceNumber:     req.InvoiceNumber,
 		IssueDate:         pgtype.Date{Time: issueDate, Valid: true},
-		DueDate:           pgtype.Date{Time: dueDate, Valid: true},
+		DueDate:           dueDateParam,
 		Currency:          req.Currency,
 		VatRate:           vatRate,
 		Subtotal:          subtotal,

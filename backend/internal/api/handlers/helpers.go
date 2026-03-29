@@ -86,6 +86,14 @@ func formatDate(d pgtype.Date) string {
 	return d.Time.Format("2006-01-02")
 }
 
+func formatDatePtr(d pgtype.Date) *string {
+	if !d.Valid {
+		return nil
+	}
+	s := d.Time.Format("2006-01-02")
+	return &s
+}
+
 func formatTime(t pgtype.Timestamptz) time.Time {
 	if !t.Valid {
 		return time.Time{}

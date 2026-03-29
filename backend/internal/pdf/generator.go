@@ -156,7 +156,10 @@ func Generate(inv InvoiceData) ([]byte, error) {
 
 	pdf.SetFont(fontName, "", 9)
 	pdf.SetTextColor(100, 100, 100)
-	dateLine := fmt.Sprintf("Issue Date: %s  |  Due Date: %s", inv.IssueDate, inv.DueDate)
+	dateLine := fmt.Sprintf("Issue Date: %s", inv.IssueDate)
+	if inv.DueDate != "" {
+		dateLine += fmt.Sprintf("  |  Due Date: %s", inv.DueDate)
+	}
 	pdf.SetXY(marginL, y)
 	pdf.Cell(contentW, 5, dateLine)
 	y += 5

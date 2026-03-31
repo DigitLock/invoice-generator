@@ -20,6 +20,10 @@
             class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             Edit
           </RouterLink>
+          <RouterLink :to="`/invoices/new?duplicate=${invoice.id}`"
+            class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            Duplicate
+          </RouterLink>
           <button @click="handleDelete"
             class="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
             Delete
@@ -31,7 +35,7 @@
       <div v-if="invoice.status !== 'paid' && invoice.status !== 'cancelled'"
         class="mb-8 flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-end">
         <div class="flex-1">
-          <StatusSelect :current-status="invoice.status" @change="handleStatusChange" />
+          <StatusSelect ref="statusSelectRef" :current-status="invoice.status" @change="handleStatusChange" />
         </div>
         <div v-if="invoice.status !== 'draft'" class="flex items-center gap-2">
           <input type="checkbox" id="overdue" :checked="invoice.is_overdue" @change="handleOverdueToggle"
@@ -169,6 +173,7 @@ const route = useRoute()
 const router = useRouter()
 const invoice = ref<InvoiceResponse | null>(null)
 const loading = ref(true)
+const statusSelectRef = ref<InstanceType<typeof StatusSelect> | null>(null)
 
 async function load() {
   loading.value = true
@@ -179,7 +184,10 @@ async function load() {
 
 async function handleStatusChange(newStatus: string) {
   if (!invoice.value) return
-  if (!confirm(`Change status to "${newStatus}"?`)) return
+  if (!confirm(`Change status to "${newStatus}"?`)) {
+    statusSelectRef.value?.reset()
+    return
+  }
   invoice.value = await updateInvoiceStatus(invoice.value.id, newStatus)
 }
 

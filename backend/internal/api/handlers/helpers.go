@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -106,4 +107,22 @@ func ptrFromPgText(t pgtype.Text) *string {
 		return nil
 	}
 	return &t.String
+}
+
+func validateDueDate(issueDate string, dueDate *string) error {
+	if dueDate == nil || *dueDate == "" {
+		return nil
+	}
+	issue, err := time.Parse("2006-01-02", issueDate)
+	if err != nil {
+		return nil
+	}
+	due, err := time.Parse("2006-01-02", *dueDate)
+	if err != nil {
+		return nil
+	}
+	if due.Before(issue) {
+		return fmt.Errorf("Due date must be on or after issue date")
+	}
+	return nil
 }

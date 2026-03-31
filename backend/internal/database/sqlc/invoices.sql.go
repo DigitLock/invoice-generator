@@ -13,12 +13,30 @@ import (
 )
 
 const countInvoices = `-- name: CountInvoices :one
-SELECT COUNT(*) FROM invoices
-WHERE family_id = $1 AND deleted_at IS NULL
+SELECT COUNT(*) FROM invoices i
+JOIN clients cl ON cl.id = i.client_id
+WHERE i.family_id = $1 AND i.deleted_at IS NULL
+  AND ($2::text IS NULL OR i.status = $2::text)
+  AND ($3::text IS NULL
+    OR i.invoice_number ILIKE '%' || $3::text || '%'
+    OR cl.name ILIKE '%' || $3::text || '%')
+  AND ($4::boolean IS NULL OR i.is_overdue = $4::boolean)
 `
 
-func (q *Queries) CountInvoices(ctx context.Context, familyID string) (int64, error) {
-	row := q.db.QueryRow(ctx, countInvoices, familyID)
+type CountInvoicesParams struct {
+	FamilyID  string      `json:"family_id"`
+	Status    pgtype.Text `json:"status"`
+	Search    pgtype.Text `json:"search"`
+	IsOverdue pgtype.Bool `json:"is_overdue"`
+}
+
+func (q *Queries) CountInvoices(ctx context.Context, arg CountInvoicesParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countInvoices,
+		arg.FamilyID,
+		arg.Status,
+		arg.Search,
+		arg.IsOverdue,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -188,14 +206,22 @@ FROM invoices i
 JOIN companies c ON c.id = i.company_id
 JOIN clients cl ON cl.id = i.client_id
 WHERE i.family_id = $1 AND i.deleted_at IS NULL
+  AND ($4::text IS NULL OR i.status = $4::text)
+  AND ($5::text IS NULL
+    OR i.invoice_number ILIKE '%' || $5::text || '%'
+    OR cl.name ILIKE '%' || $5::text || '%')
+  AND ($6::boolean IS NULL OR i.is_overdue = $6::boolean)
 ORDER BY i.issue_date DESC, i.created_at DESC
 LIMIT $2 OFFSET $3
 `
 
 type ListInvoicesParams struct {
-	FamilyID string `json:"family_id"`
-	Limit    int32  `json:"limit"`
-	Offset   int32  `json:"offset"`
+	FamilyID  string      `json:"family_id"`
+	Limit     int32       `json:"limit"`
+	Offset    int32       `json:"offset"`
+	Status    pgtype.Text `json:"status"`
+	Search    pgtype.Text `json:"search"`
+	IsOverdue pgtype.Bool `json:"is_overdue"`
 }
 
 type ListInvoicesRow struct {
@@ -227,7 +253,14 @@ type ListInvoicesRow struct {
 }
 
 func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]ListInvoicesRow, error) {
-	rows, err := q.db.Query(ctx, listInvoices, arg.FamilyID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listInvoices,
+		arg.FamilyID,
+		arg.Limit,
+		arg.Offset,
+		arg.Status,
+		arg.Search,
+		arg.IsOverdue,
+	)
 	if err != nil {
 		return nil, err
 	}

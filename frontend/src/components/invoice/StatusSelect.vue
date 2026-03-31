@@ -41,4 +41,10 @@ function handleChange() {
     emit('change', selected.value)
   }
 }
+
+function reset() {
+  selected.value = props.currentStatus
+}
+
+defineExpose({ reset })
 </script>

@@ -3,8 +3,8 @@ import { ref, computed } from 'vue'
 import { login as loginApi } from '@/services/authApi'
 
 interface User {
-  id: number
-  familyId: number
+  id: string
+  familyId: string
   email: string
   name: string
 }

@@ -28,17 +28,38 @@ func (r *InvoiceRepository) GetByID(ctx context.Context, id int64, familyID stri
 	return r.q.GetInvoice(ctx, sqlc.GetInvoiceParams{ID: id, FamilyID: familyID})
 }
 
-func (r *InvoiceRepository) List(ctx context.Context, familyID string, page, pageSize int) ([]sqlc.ListInvoicesRow, int64, error) {
+func (r *InvoiceRepository) List(ctx context.Context, familyID string, page, pageSize int, status, search *string, isOverdue *bool) ([]sqlc.ListInvoicesRow, int64, error) {
 	offset := (page - 1) * pageSize
+
+	var statusParam, searchParam pgtype.Text
+	if status != nil && *status != "" {
+		statusParam = pgtype.Text{String: *status, Valid: true}
+	}
+	if search != nil && *search != "" {
+		searchParam = pgtype.Text{String: *search, Valid: true}
+	}
+	var isOverdueParam pgtype.Bool
+	if isOverdue != nil {
+		isOverdueParam = pgtype.Bool{Bool: *isOverdue, Valid: true}
+	}
+
 	rows, err := r.q.ListInvoices(ctx, sqlc.ListInvoicesParams{
-		FamilyID: familyID,
-		Limit:    int32(pageSize),
-		Offset:   int32(offset),
+		FamilyID:  familyID,
+		Limit:     int32(pageSize),
+		Offset:    int32(offset),
+		Status:    statusParam,
+		Search:    searchParam,
+		IsOverdue: isOverdueParam,
 	})
 	if err != nil {
 		return nil, 0, err
 	}
-	total, err := r.q.CountInvoices(ctx, familyID)
+	total, err := r.q.CountInvoices(ctx, sqlc.CountInvoicesParams{
+		FamilyID:  familyID,
+		Status:    statusParam,
+		Search:    searchParam,
+		IsOverdue: isOverdueParam,
+	})
 	if err != nil {
 		return nil, 0, err
 	}

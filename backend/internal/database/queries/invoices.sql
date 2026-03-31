@@ -11,12 +11,23 @@ FROM invoices i
 JOIN companies c ON c.id = i.company_id
 JOIN clients cl ON cl.id = i.client_id
 WHERE i.family_id = $1 AND i.deleted_at IS NULL
+  AND (sqlc.narg('status')::text IS NULL OR i.status = sqlc.narg('status')::text)
+  AND (sqlc.narg('search')::text IS NULL
+    OR i.invoice_number ILIKE '%' || sqlc.narg('search')::text || '%'
+    OR cl.name ILIKE '%' || sqlc.narg('search')::text || '%')
+  AND (sqlc.narg('is_overdue')::boolean IS NULL OR i.is_overdue = sqlc.narg('is_overdue')::boolean)
 ORDER BY i.issue_date DESC, i.created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: CountInvoices :one
-SELECT COUNT(*) FROM invoices
-WHERE family_id = $1 AND deleted_at IS NULL;
+SELECT COUNT(*) FROM invoices i
+JOIN clients cl ON cl.id = i.client_id
+WHERE i.family_id = $1 AND i.deleted_at IS NULL
+  AND (sqlc.narg('status')::text IS NULL OR i.status = sqlc.narg('status')::text)
+  AND (sqlc.narg('search')::text IS NULL
+    OR i.invoice_number ILIKE '%' || sqlc.narg('search')::text || '%'
+    OR cl.name ILIKE '%' || sqlc.narg('search')::text || '%')
+  AND (sqlc.narg('is_overdue')::boolean IS NULL OR i.is_overdue = sqlc.narg('is_overdue')::boolean);
 
 -- name: CreateInvoice :one
 INSERT INTO invoices (

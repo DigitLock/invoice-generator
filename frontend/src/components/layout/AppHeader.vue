@@ -7,9 +7,9 @@
       <nav class="flex items-center gap-4">
         <template v-if="isAuthenticated">
           <RouterLink to="/dashboard" class="text-sm text-gray-600 hover:text-gray-900">Dashboard</RouterLink>
-          <RouterLink to="/companies" class="text-sm text-gray-600 hover:text-gray-900">Companies</RouterLink>
-          <RouterLink to="/clients" class="text-sm text-gray-600 hover:text-gray-900">Clients</RouterLink>
           <RouterLink to="/invoices" class="text-sm text-gray-600 hover:text-gray-900">Invoices</RouterLink>
+          <RouterLink to="/clients" class="text-sm text-gray-600 hover:text-gray-900">Clients</RouterLink>
+          <RouterLink to="/companies" class="text-sm text-gray-600 hover:text-gray-900">Companies</RouterLink>
           <span class="text-sm text-gray-500">{{ user?.name }}</span>
           <button @click="handleLogout" class="text-sm text-red-600 hover:text-red-800">
             Log out

@@ -1,9 +1,9 @@
 import type { LoginRequest, LoginResponse } from '@/types/api'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8081'
+const AUTH_BASE = import.meta.env.VITE_AUTH_URL || 'http://localhost:8080'
 
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
-  const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
+  const response = await fetch(`${AUTH_BASE}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
@@ -15,5 +15,5 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
     throw new Error(body.error || 'Login failed')
   }
 
-  return body as LoginResponse
+  return body.data as LoginResponse
 }

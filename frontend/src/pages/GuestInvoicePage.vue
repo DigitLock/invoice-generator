@@ -23,14 +23,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useInvoiceStore } from '@/stores/invoice'
 import InvoiceForm from '@/components/invoice/InvoiceForm.vue'
 import ConfirmDialog from '@/components/invoice/ConfirmDialog.vue'
 
-const { invoice } = storeToRefs(useInvoiceStore())
+const invoiceStore = useInvoiceStore()
+const { invoice } = storeToRefs(invoiceStore)
+
+onMounted(() => {
+  invoiceStore.resetInvoice()
+})
 const formRef = ref<InstanceType<typeof InvoiceForm> | null>(null)
 const showConfirm = ref(false)
 

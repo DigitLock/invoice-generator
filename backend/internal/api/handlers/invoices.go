@@ -36,7 +36,20 @@ func (h *InvoiceHandler) List(w http.ResponseWriter, r *http.Request) {
 		pageSize = 100
 	}
 
-	rows, total, err := h.repo.List(r.Context(), familyID, page, pageSize)
+	var status, search *string
+	if s := r.URL.Query().Get("status"); s != "" {
+		status = &s
+	}
+	if s := r.URL.Query().Get("search"); s != "" {
+		search = &s
+	}
+	var isOverdue *bool
+	if s := r.URL.Query().Get("is_overdue"); s == "true" {
+		v := true
+		isOverdue = &v
+	}
+
+	rows, total, err := h.repo.List(r.Context(), familyID, page, pageSize, status, search, isOverdue)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Failed to list invoices")
 		return
@@ -156,6 +169,11 @@ func (h *InvoiceHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := validateDueDate(req.IssueDate, req.DueDate); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	invoice, items, err := h.repo.Create(r.Context(), userID, familyID, req)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Failed to create invoice: "+err.Error())
@@ -186,6 +204,11 @@ func (h *InvoiceHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := validate.Struct(req); err != nil {
 		writeValidationErrors(w, err)
+		return
+	}
+
+	if err := validateDueDate(req.IssueDate, req.DueDate); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 

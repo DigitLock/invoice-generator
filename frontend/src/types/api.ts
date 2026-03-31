@@ -6,12 +6,12 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string
   user: {
-    id: number
-    family_id: number
+    id: string
+    family_id: string
     email: string
     name: string
   }
-  expires_at: string
+  expires_in: number
 }
 
 export interface CompanyResponse {
@@ -75,7 +75,7 @@ export interface InvoiceResponse {
   client_id: number
   bank_account_id: number
   issue_date: string
-  due_date: string
+  due_date: string | null
   currency: string
   status: string
   is_overdue: boolean
@@ -98,7 +98,7 @@ export interface InvoiceListItem {
   id: number
   invoice_number: string
   issue_date: string
-  due_date: string
+  due_date: string | null
   status: string
   is_overdue: boolean
   currency: string

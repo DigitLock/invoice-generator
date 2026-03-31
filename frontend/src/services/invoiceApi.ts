@@ -32,6 +32,7 @@ export function fetchInvoices(params: {
   search?: string
   date_from?: string
   date_to?: string
+  is_overdue?: boolean
 } = {}): Promise<InvoiceListResponse> {
   const query = new URLSearchParams()
   query.set('page', String(params.page ?? 1))
@@ -40,6 +41,7 @@ export function fetchInvoices(params: {
   if (params.search) query.set('search', params.search)
   if (params.date_from) query.set('date_from', params.date_from)
   if (params.date_to) query.set('date_to', params.date_to)
+  if (params.is_overdue) query.set('is_overdue', 'true')
   return apiGet<InvoiceListResponse>(`/api/v1/invoices?${query}`)
 }
 

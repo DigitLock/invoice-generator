@@ -58,7 +58,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">Due Date</label>
-            <input v-model="form.due_date" type="date" required
+            <input v-model="form.due_date" type="date"
               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
           </div>
           <div>
@@ -162,6 +162,10 @@
           class="w-full sm:w-auto rounded-md bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50">
           {{ saving ? 'Saving...' : (isEdit ? 'Update Invoice' : 'Create Invoice') }}
         </button>
+        <button type="submit" :disabled="saving" @click="downloadAfterSave = true"
+          class="w-full sm:w-auto rounded-md border border-blue-600 px-6 py-2 font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50">
+          {{ saving ? 'Saving...' : 'Save & Download PDF' }}
+        </button>
         <RouterLink to="/invoices"
           class="w-full sm:w-auto rounded-md border border-gray-300 px-6 py-2 text-center font-medium text-gray-700 hover:bg-gray-50">
           Cancel
@@ -178,7 +182,7 @@ import type { CompanyResponse, ClientResponse, BankAccountResponse } from '@/typ
 import { fetchCompanies } from '@/services/companyApi'
 import { fetchClients } from '@/services/clientApi'
 import { fetchBankAccounts } from '@/services/bankAccountApi'
-import { createInvoice, updateInvoice, fetchInvoice } from '@/services/invoiceApi'
+import { createInvoice, updateInvoice, fetchInvoice, downloadInvoicePdf } from '@/services/invoiceApi'
 import type { InvoiceItemInput } from '@/services/invoiceApi'
 
 const router = useRouter()
@@ -189,9 +193,14 @@ const invoiceId = computed(() => {
   return id ? Number(id) : null
 })
 const isEdit = computed(() => !!invoiceId.value)
+const duplicateId = computed(() => {
+  const id = route.query.duplicate
+  return id ? Number(id) : null
+})
 
 const loadingSetup = ref(true)
 const saving = ref(false)
+const downloadAfterSave = ref(false)
 const error = ref('')
 
 const companies = ref<CompanyResponse[]>([])
@@ -275,7 +284,28 @@ async function loadSetup() {
     selectedBankAccountId.value = inv.bank_account_id
     form.invoice_number = inv.invoice_number
     form.issue_date = inv.issue_date
-    form.due_date = inv.due_date
+    form.due_date = inv.due_date ?? ''
+    form.currency = inv.currency
+    form.vat_rate = inv.vat_rate
+    form.contract_reference = inv.contract_reference ?? ''
+    form.external_reference = inv.external_reference ?? ''
+    form.notes = inv.notes ?? ''
+    items.value = (inv.items ?? []).map((it) => ({
+      description: it.description,
+      quantity: it.quantity,
+      unit_price: it.unit_price,
+    }))
+    if (items.value.length === 0) {
+      items.value = [{ description: '', quantity: '', unit_price: '' }]
+    }
+    bankAccounts.value = await fetchBankAccounts(inv.company_id)
+  } else if (duplicateId.value) {
+    const inv = await fetchInvoice(duplicateId.value)
+    selectedCompanyId.value = inv.company_id
+    selectedClientId.value = inv.client_id
+    selectedBankAccountId.value = inv.bank_account_id
+    form.issue_date = new Date().toISOString().slice(0, 10)
+    form.due_date = inv.due_date ?? ''
     form.currency = inv.currency
     form.vat_rate = inv.vat_rate
     form.contract_reference = inv.contract_reference ?? ''
@@ -309,7 +339,7 @@ async function handleSubmit() {
       client_id: selectedClientId.value,
       bank_account_id: selectedBankAccountId.value,
       issue_date: form.issue_date,
-      due_date: form.due_date,
+      due_date: form.due_date || null,
       currency: form.currency,
       vat_rate: form.vat_rate || '0.00',
       contract_reference: form.contract_reference || null,
@@ -318,19 +348,29 @@ async function handleSubmit() {
       items: items.value.filter((it) => it.description.trim()),
     }
 
+    let savedId: number
     if (invoiceId.value) {
-      await updateInvoice(invoiceId.value, {
+      const updated = await updateInvoice(invoiceId.value, {
         ...data,
         invoice_number: form.invoice_number,
       })
+      savedId = updated.id
     } else {
-      await createInvoice(data)
+      const created = await createInvoice(data)
+      savedId = created.id
     }
-    router.push('/invoices')
+
+    if (downloadAfterSave.value) {
+      const inv = await fetchInvoice(savedId)
+      await downloadInvoicePdf(savedId, inv.invoice_number)
+    }
+
+    router.push(`/invoices/${savedId}`)
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to save invoice'
   } finally {
     saving.value = false
+    downloadAfterSave.value = false
   }
 }
 

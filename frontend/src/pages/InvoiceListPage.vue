@@ -35,7 +35,15 @@
       <div>
         <label class="block text-xs font-medium text-gray-500">Search</label>
         <input v-model="filters.search" type="text" placeholder="Invoice # or client..." @keyup.enter="loadPage(1)"
+          @input="onSearchInput"
           class="mt-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+      </div>
+      <div class="flex items-end pb-0.5">
+        <label class="flex items-center gap-1.5 text-sm text-gray-700">
+          <input v-model="filters.is_overdue" type="checkbox" @change="loadPage(1)"
+            class="rounded border-gray-300 text-red-600 focus:ring-red-500" />
+          Overdue only
+        </label>
       </div>
     </div>
 
@@ -128,7 +136,12 @@ const filters = reactive({
   date_from: '',
   date_to: '',
   search: '',
+  is_overdue: false,
 })
+
+function onSearchInput() {
+  if (!filters.search) loadPage(1)
+}
 
 async function loadPage(page: number) {
   loading.value = true
@@ -140,6 +153,7 @@ async function loadPage(page: number) {
       date_from: filters.date_from || undefined,
       date_to: filters.date_to || undefined,
       search: filters.search || undefined,
+      is_overdue: filters.is_overdue || undefined,
     })
     invoices.value = response.invoices
     pagination.value = response.pagination

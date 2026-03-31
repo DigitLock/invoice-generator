@@ -32,6 +32,7 @@
     <BankAccountForm
       v-if="showForm"
       :account="editingAccount ?? undefined"
+      :server-error="formError"
       @save="handleSave"
       @cancel="cancelForm"
     />
@@ -52,6 +53,7 @@ const props = defineProps<{
 const accounts = ref<BankAccountResponse[]>([])
 const showForm = ref(false)
 const editingAccount = ref<BankAccountResponse | null>(null)
+const formError = ref('')
 
 async function loadAccounts() {
   accounts.value = await fetchBankAccounts(props.companyId)
@@ -59,11 +61,13 @@ async function loadAccounts() {
 
 function startAdd() {
   editingAccount.value = null
+  formError.value = ''
   showForm.value = true
 }
 
 function startEdit(account: BankAccountResponse) {
   editingAccount.value = account
+  formError.value = ''
   showForm.value = true
 }
 
@@ -73,13 +77,18 @@ function cancelForm() {
 }
 
 async function handleSave(data: BankAccountInput) {
-  if (editingAccount.value) {
-    await updateBankAccount(editingAccount.value.id, data)
-  } else {
-    await createBankAccount(props.companyId, data)
+  formError.value = ''
+  try {
+    if (editingAccount.value) {
+      await updateBankAccount(editingAccount.value.id, data)
+    } else {
+      await createBankAccount(props.companyId, data)
+    }
+    cancelForm()
+    await loadAccounts()
+  } catch (e) {
+    formError.value = e instanceof Error ? e.message : 'Failed to save bank account'
   }
-  cancelForm()
-  await loadAccounts()
 }
 
 async function handleDelete(account: BankAccountResponse) {

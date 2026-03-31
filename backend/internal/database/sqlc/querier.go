@@ -13,7 +13,7 @@ type Querier interface {
 	ClearDefaultBankAccount(ctx context.Context, arg ClearDefaultBankAccountParams) error
 	ClientHasNonDraftInvoices(ctx context.Context, clientID int64) (bool, error)
 	CompanyHasNonDraftInvoices(ctx context.Context, companyID int64) (bool, error)
-	CountInvoices(ctx context.Context, familyID string) (int64, error)
+	CountInvoices(ctx context.Context, arg CountInvoicesParams) (int64, error)
 	CreateBankAccount(ctx context.Context, arg CreateBankAccountParams) (BankAccount, error)
 	CreateClient(ctx context.Context, arg CreateClientParams) (Client, error)
 	CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error)

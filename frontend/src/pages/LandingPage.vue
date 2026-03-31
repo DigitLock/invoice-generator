@@ -3,14 +3,14 @@
     <div class="grid grid-cols-1 items-center gap-8 sm:gap-12 lg:grid-cols-2">
       <!-- Left: invoice preview image -->
       <div class="flex flex-col items-center gap-2">
-        <a href="/invoice-preview.pdf" target="_blank" rel="noopener"
+        <button type="button" @click="showModal = true"
           class="inline-block transition-transform duration-200 hover:scale-[1.02] hover:shadow-xl rounded-lg">
           <img
             src="/invoice-preview.png"
             alt="Sample invoice preview"
             class="max-h-[500px] w-auto rounded-lg border border-gray-200 shadow-lg cursor-pointer"
           />
-        </a>
+        </button>
         <p class="text-sm text-gray-400">Click to preview sample</p>
       </div>
 
@@ -33,8 +33,30 @@
       </div>
     </div>
   </div>
+
+  <!-- Preview modal -->
+  <Teleport to="body">
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      @click.self="showModal = false">
+      <div class="fixed inset-0 bg-black/60" @click="showModal = false"></div>
+      <div class="relative z-10 max-h-[90vh] max-w-3xl">
+        <button type="button" @click="showModal = false"
+          class="absolute -top-3 -right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-600 shadow-lg hover:text-gray-900">
+          &times;
+        </button>
+        <img
+          src="/invoice-preview.png"
+          alt="Sample invoice preview"
+          class="max-h-[90vh] w-auto rounded-lg shadow-2xl"
+        />
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
+
+const showModal = ref(false)
 </script>

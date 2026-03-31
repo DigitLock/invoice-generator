@@ -7,7 +7,11 @@ export class ApiRequestError extends Error {
   details?: { field: string; message: string }[]
 
   constructor(status: number, body: ApiError) {
-    super(body.error)
+    const message =
+      body.details?.length
+        ? body.details.map((d) => `${d.field}: ${d.message}`).join('\n')
+        : body.error
+    super(message)
     this.status = status
     this.details = body.details
   }

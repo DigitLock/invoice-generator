@@ -38,7 +38,7 @@
         <label for="is_default" class="text-sm text-gray-700">Set as default account</label>
       </div>
     </div>
-    <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
+    <p v-if="error || serverError" class="whitespace-pre-line text-sm text-red-600">{{ error || serverError }}</p>
     <div class="flex gap-2">
       <button type="submit" :disabled="saving"
         class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
@@ -59,6 +59,7 @@ import type { BankAccountInput } from '@/services/bankAccountApi'
 
 const props = defineProps<{
   account?: BankAccountResponse
+  serverError?: string
 }>()
 
 const emit = defineEmits<{

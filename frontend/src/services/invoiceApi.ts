@@ -12,7 +12,7 @@ export interface CreateInvoiceInput {
   client_id: number
   bank_account_id: number
   issue_date: string
-  due_date: string
+  due_date?: string | null
   currency: string
   vat_rate: string
   contract_reference?: string | null

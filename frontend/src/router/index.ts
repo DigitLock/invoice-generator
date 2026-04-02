@@ -22,6 +22,11 @@ const router = createRouter({
       name: 'login',
       component: LoginPage,
     },
+    {
+      path: '/privacy',
+      name: 'privacy-policy',
+      component: () => import('@/pages/PrivacyPolicyPage.vue'),
+    },
 
     // Authorized routes (require JWT)
     {

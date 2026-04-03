@@ -44,6 +44,13 @@
         </button>
       </form>
 
+      <!-- Demo credentials -->
+      <div class="p-4 bg-gray-50 rounded-lg">
+        <p class="text-xs text-gray-500 font-medium mb-2">Demo credentials:</p>
+        <p class="text-sm text-gray-700">Email: demo@example.com</p>
+        <p class="text-sm text-gray-700">Password: Demo123!</p>
+      </div>
+
       <p class="text-center text-sm text-gray-500">
         <RouterLink to="/" class="text-blue-600 hover:text-blue-800">Back to home</RouterLink>
       </p>
